@@ -12,7 +12,7 @@ for(const [path,id,summary,name] of [['/api/trade/local','build_unsigned_trade',
 paths['/api/curve/{mint}']={get:{...operation('get_bonding_curve','Inspect curve completion and reserves','Curve'),parameters:[{in:'path',name:'mint',required:true,schema:key,example:example.mint}]}};
 paths['/api/health']={get:operation('service_health','Service liveness; does not probe RPC','Health')};
 paths['/api/capabilities']={get:operation('service_capabilities','Inspect supported venues and limits','Capabilities')};
-const base={openapi:'3.0.3',info:{title:'Pump Trade Router',version:'0.1.0-preview',description:'Developer preview. Automatic Pump/PumpSwap routing and atomic 10 bps fee on actual SOL/WSOL trade balance changes. Requires deployment of the included fee router program. Unsigned only; no execution guarantee.'},servers:[{url:'http://localhost:8787'}],paths,components:{schemas,securitySchemes:{proxySecret:{type:'apiKey',in:'header',name:'X-RapidAPI-Proxy-Secret'}}},security:[{proxySecret:[]}]};
+const base={openapi:'3.0.3',info:{title:'Pump Trade Router',version:'0.1.0-preview',description:'Developer preview. Automatic Pump/PumpSwap routing and atomic 10 bps fee on actual SOL/WSOL trade balance changes. Requires deployment of the included fee router program. Unsigned only; no execution guarantee.'},servers:[{url:'http://localhost:8787'}],paths,components:{schemas,securitySchemes:{bearerAuth:{type:'http',scheme:'bearer'}}},security:[{bearerAuth:[]}]};
 base.paths['/api/health'].get.security=[];
 writeFileSync('docs/openapi-provider.json',JSON.stringify(base,null,2)+'\n');
 writeFileSync('docs/openapi.json',JSON.stringify(base,null,2)+'\n');

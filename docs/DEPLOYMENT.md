@@ -2,14 +2,14 @@
 
 This repository has two parts: a JavaScript API and a Rust program that runs on Solana. The API builds unsigned transactions. The program executes the trade and collects the exact 0.1% fee.
 
-**Current status:** source preview. No fee-program deployment address has been configured. Do not point paying users at a fee-bearing endpoint until the program has been tested with the real protocol and its deployment has been verified. The existing RapidAPI listing is a separate service.
+**Current status:** source preview. No fee-program deployment address has been configured. Do not point paying users at a fee-bearing endpoint until the program has been tested with the real protocol and its deployment has been verified. This API runs independently on your own endpoint.
 
 ## API configuration
 
 | Setting | Purpose |
 | --- | --- |
 | `SOLANA_RPC_URL` | HTTPS RPC endpoint on the same cluster as the deployed router and token markets |
-| `RAPIDAPI_PROXY_SECRET` | Server-to-server API password; requests send it in `X-RapidAPI-Proxy-Secret` |
+| `API_KEY` | Server API key; requests send `Authorization: Bearer YOUR_API_KEY` |
 | `FEE_ROUTER_PROGRAM_ID` | Public address of your verified deployment of `programs/fee-router` |
 
 Use ignored `.dev.vars` for local development. For Cloudflare, set secrets using `wrangler secret put` interactively. Do not put real credentials in shell history or repository files. The router ID is public configuration; it can be a Worker variable. The fee wallet is deliberately not a per-request or environment override.

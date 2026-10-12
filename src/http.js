@@ -59,15 +59,16 @@ export async function bodyJson(request) {
   try { return JSON.parse(text); } catch { fail('Body must contain valid JSON.'); }
 }
 async function authenticate(request, env) {
-  if (typeof env.RAPIDAPI_PROXY_SECRET !== 'string' || !env.RAPIDAPI_PROXY_SECRET) throw new ApiError(503, 'AUTH_NOT_CONFIGURED', 'Authentication is not configured.');
-  const supplied = request.headers.get('X-RapidAPI-Proxy-Secret');
-  if (!supplied || supplied.length > 512) throw new ApiError(401, 'UNAUTHORIZED', 'Use an authenticated RapidAPI subscription.');
+  if (typeof env.API_KEY !== 'string' || !/^[A-Za-z0-9._~+/-]{1,512}={0,2}$/.test(env.API_KEY)) throw new ApiError(503, 'AUTH_NOT_CONFIGURED', 'Authentication is not configured.');
+  const authorization = request.headers.get('Authorization');
+  const supplied = authorization && authorization.length <= 521 ? /^Bearer ([A-Za-z0-9._~+/-]{1,512}={0,2})$/i.exec(authorization)?.[1] : undefined;
+  if (!supplied) throw new ApiError(401, 'UNAUTHORIZED', 'Send your API key as Authorization: Bearer YOUR_API_KEY.');
   const enc = new TextEncoder();
-  const digests = await Promise.all([env.RAPIDAPI_PROXY_SECRET, supplied].map(v => crypto.subtle.digest('SHA-256', enc.encode(v))));
+  const digests = await Promise.all([env.API_KEY, supplied].map(v => crypto.subtle.digest('SHA-256', enc.encode(v))));
   const a = new Uint8Array(digests[0]), b = new Uint8Array(digests[1]);
   let difference = 0;
   for (let i = 0; i < a.length; i++) difference |= a[i] ^ b[i];
-  if (difference) throw new ApiError(401, 'UNAUTHORIZED', 'Use an authenticated RapidAPI subscription.');
+  if (difference) throw new ApiError(401, 'UNAUTHORIZED', 'Send your API key as Authorization: Bearer YOUR_API_KEY.');
 }
 export function app(name, routes) {
   return {async fetch(request, env = {}, ctx = {}) {
@@ -86,6 +87,7 @@ export function app(name, routes) {
       }
     } catch (error) {
       status = error instanceof ApiError ? error.status : 500;
+      if (status === 401) extra['WWW-Authenticate'] = 'Bearer';
       payload = {error: {code: error instanceof ApiError ? error.code : 'INTERNAL_ERROR', message: error instanceof ApiError ? error.message : 'An unexpected error occurred.'}};
     }
     return new Response(JSON.stringify({...payload, requestId}), {status, headers: {'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer', 'X-Request-ID': requestId, ...extra}});

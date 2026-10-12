@@ -1381,16 +1381,15 @@
       }
     },
     "securitySchemes": {
-      "proxySecret": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "X-RapidAPI-Proxy-Secret"
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
       }
     }
   },
   "security": [
     {
-      "proxySecret": []
+      "bearerAuth": []
     }
   ]
 }

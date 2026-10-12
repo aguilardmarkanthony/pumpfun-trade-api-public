@@ -31,4 +31,4 @@ The implementation uses [Solana cross-program invocation](https://solana.com/doc
 
 The program always charges its fixed fee when it is used successfully. Someone can still call Pump directly, remove the wrapper from an unsigned transaction, or deploy modified source. MIT licensing permits forks. A public repository is a distribution channel, not an enforceable fee across all trades in the ecosystem.
 
-The separate existing RapidAPI listing retains its existing service and subscription terms. This preview has not changed those terms or enabled a second fee there.
+This standalone edition has no marketplace subscription requirement. Its trading fee is collected inside a successfully executed transaction.

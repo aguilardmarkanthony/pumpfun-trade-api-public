@@ -3,6 +3,17 @@ import {SystemProgram,PublicKey} from '@solana/web3.js';
 import {Rpc} from '../src/rpc.js';import {loadState,quoteState,instructions,tokenAccount} from '../src/protocol.js';import {tradeInput} from '../src/input.js';import {auditInstructions} from '../src/transaction.js';import {createService,trade} from '../src/service.js';import {TOKEN_PROGRAM_ID} from '@solana/spl-token';
 import {fixture,ENV,buy,USER,OTHER,MINT,tokenInfo} from './fixtures.js';
 import adapter from '../vendor/bigint-buffer/index.cjs';
+test('standalone bearer authentication accepts only the configured key',async()=>{
+ const app=createService(()=>{throw new Error('Unexpected RPC');}),env={API_KEY:'test-key_123'};
+ const call=(headers={},config=env)=>app.fetch(new Request('https://example.com/api/capabilities',{headers}),config);
+ for(const authorization of ['Bearer test-key_123','bearer test-key_123'])assert.equal((await call({Authorization:authorization})).status,200);
+ for(const authorization of ['', 'test-key_123','Basic test-key_123','Bearer wrong','Bearer test-key_123 extra','Bearer '+ 'x'.repeat(515)]){
+  const response=await call({Authorization:authorization});assert.equal(response.status,401);assert.equal(response.headers.get('WWW-Authenticate'),'Bearer');assert.ok(!(await response.text()).includes(env.API_KEY));
+ }
+ assert.equal((await call({'X-API-Key':env.API_KEY})).status,401);
+ assert.equal((await call({},{})).status,503);
+ assert.equal((await call({Authorization:'Bearer test-key_123'},{API_KEY:' '})).status,503);
+});
 test('pure bigint adapter round trips widths and rejects overflow',()=>{
  for(const width of [0,1,2,4,8,16,32,64])for(const v of [0n,(1n<<BigInt(width*8))-1n]){
   assert.equal(adapter.toBigIntBE(adapter.toBufferBE(v,width)),v);assert.equal(adapter.toBigIntLE(adapter.toBufferLE(v,width)),v);
@@ -49,9 +60,9 @@ test('stale blockhash context and missing network fee refuse a build',async()=>{
  }
 });
 test('body size, compression, JSON and unknown query reject before RPC',async()=>{
- const app=createService(()=>{throw new Error('Unexpected RPC');});const env={RAPIDAPI_PROXY_SECRET:'test'};
+ const app=createService(()=>{throw new Error('Unexpected RPC');});const env={API_KEY:'test'};
  for(const [body,headers,status,suffix] of [['x'.repeat(8193),{},413,''],['{}',{'Content-Encoding':'gzip'},415,''],['{',{},400,''],['{}',{},400,'?unknown=1']]){
-  const request=new Request('https://example.com/api/trade/local'+suffix,{method:'POST',headers:{'X-RapidAPI-Proxy-Secret':'test','Content-Type':'application/json',...headers},body});
+  const request=new Request('https://example.com/api/trade/local'+suffix,{method:'POST',headers:{Authorization:'Bearer test','Content-Type':'application/json',...headers},body});
   assert.equal((await app.fetch(request,env)).status,status);
  }
 });

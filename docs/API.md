@@ -1,8 +1,8 @@
 # API reference
 
-Pump Trade Router is a developer preview with a fixed 0.1% fee on actual SOL/WSOL trade value. A verified on-chain router deployment is required for transaction builds. This documentation describes the public edition, not the separately deployed RapidAPI subscription service.
+Pump Trade Router is a developer preview with a fixed 0.1% fee on actual SOL/WSOL trade value. A verified on-chain router deployment is required for transaction builds. This API runs on your own endpoint.
 
-All routes except `/api/health` require `X-RapidAPI-Proxy-Secret`. Send JSON with `Content-Type: application/json`. Direct clients use the operator's endpoint; a RapidAPI publisher must configure its gateway and origin secret before offering this edition. No new marketplace endpoint has been published for this preview.
+All routes except `/api/health` require `Authorization: Bearer YOUR_API_KEY`. Set `API_KEY` on your server and give it only to trusted clients. Send JSON with `Content-Type: application/json`. No marketplace account or subscription is required.
 
 ## Routes
 

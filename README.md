@@ -6,7 +6,7 @@ Buy and sell Pump tokens without guessing which market they use.
 
 Give the API a token mint, your public wallet address and an amount. It reads the token's on-chain state, selects the bonding curve or canonical PumpSwap pool, and builds a transaction for your wallet to sign.
 
-**Status: developer preview.** The API and fee-program source are available here. The fee program has not been deployed or verified against live Pump trades. Quotes work with an RPC connection; transaction builds stay disabled until an operator deploys and configures the program. This repository does not activate fees on the existing RapidAPI service.
+**Status: developer preview.** The API and fee-program source are available here. The fee program has not been deployed or verified against live Pump trades. Quotes work with an RPC connection; transaction builds stay disabled until an operator deploys and configures the program. This is a standalone API that you can host yourself.
 
 ## What you get
 
@@ -31,7 +31,7 @@ Create `.dev.vars` in the project folder. Use your own values; keep this file pr
 
 ```ini
 SOLANA_RPC_URL="https://YOUR_SOLANA_RPC"
-RAPIDAPI_PROXY_SECRET="YOUR_LOCAL_API_PASSWORD"
+API_KEY="YOUR_API_KEY"
 ```
 
 Then run:
@@ -45,7 +45,7 @@ Edit [examples/buy.json](examples/buy.json): replace the sample wallet and mint 
 ```sh
 curl http://localhost:8787/api/quote \
   -H "Content-Type: application/json" \
-  -H "X-RapidAPI-Proxy-Secret: YOUR_LOCAL_API_PASSWORD" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
   --data-binary @examples/buy.json
 ```
 
@@ -78,7 +78,7 @@ The trade and service fee are atomic: if either fails, both roll back. Solana ca
 
 ## For maintainers
 
-[Deployment](docs/DEPLOYMENT.md) · [API reference](docs/rapidapi.md) · [OpenAPI](docs/openapi.json) · [Review and test limits](docs/REVIEW.md) · [Security](SECURITY.md)
+[Deployment](docs/DEPLOYMENT.md) · [API reference](docs/API.md) · [OpenAPI](docs/openapi.json) · [Review and test limits](docs/REVIEW.md) · [Security](SECURITY.md)
 
 ```sh
 npm test

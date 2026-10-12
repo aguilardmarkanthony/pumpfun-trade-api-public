@@ -4,8 +4,8 @@ import {FEE_RECIPIENT,FEE_ATA} from '../src/fees.js';
 async function request(settings,path,order){
   const url=new URL(path,settings.baseUrl);
   if(url.protocol!=='https:'&&!['localhost','127.0.0.1','[::1]'].includes(url.hostname)) throw new Error('Use HTTPS outside localhost.');
-  if(!settings.apiSecret) throw new Error('Set API_SECRET to your server API password.');
-  const response=await fetch(url,{method:'POST',redirect:'error',signal:AbortSignal.timeout(30000),headers:{'Content-Type':'application/json','X-RapidAPI-Proxy-Secret':settings.apiSecret},body:JSON.stringify(order)});
+  if(!settings.apiKey) throw new Error('Set API_KEY to your server API password.');
+  const response=await fetch(url,{method:'POST',redirect:'error',signal:AbortSignal.timeout(30000),headers:{'Content-Type':'application/json',Authorization:`Bearer ${settings.apiKey}`},body:JSON.stringify(order)});
   const result=await response.json();
   if(!response.ok) throw new Error(`${result.error?.code??response.status}: ${result.error?.message??'Request failed'}`);
   return result;

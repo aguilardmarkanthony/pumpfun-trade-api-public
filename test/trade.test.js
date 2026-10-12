@@ -53,6 +53,6 @@ test('insufficient token balance is rejected before building',async()=>{
 test('origin authentication fails closed; health exposes no RPC secret',async()=>{
  const app=createService(()=>{throw new Error('Unexpected RPC');});
  assert.equal((await app.fetch(new Request('https://example.com/api/capabilities'),{})).status,503);
- assert.equal((await app.fetch(new Request('https://example.com/api/capabilities'),{RAPIDAPI_PROXY_SECRET:'test'})).status,401);
+ assert.equal((await app.fetch(new Request('https://example.com/api/capabilities'),{API_KEY:'test'})).status,401);
  const r=await app.fetch(new Request('https://example.com/api/health'),{SOLANA_RPC_URL:'https://example.com/private'});assert.equal(r.status,200);assert.ok(!(await r.text()).includes('private'));
 });

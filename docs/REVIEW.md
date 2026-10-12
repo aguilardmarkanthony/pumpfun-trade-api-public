@@ -11,8 +11,9 @@ Scope: the public API, exact-fee CPI wrapper, routing checks, fee disclosure, ex
 5. A WSOL buy could spend the whole prefunded amount before fee collection. It now prefunds the input plus the maximum service fee; actual fee still uses actual spend.
 6. Buy funding checks now include the maximum service fee and network fee. Rent remains separate and simulation catches additional account-funding requirements.
 7. Missing program configuration must not produce an uncharged build. Builds fail closed until an executable router address is configured.
-8. Public docs and examples must not imply that the existing RapidAPI service has started charging a new fee. They identify this as a separate, undeployed preview.
+8. Public docs and examples identify this as a standalone, undeployed preview. API calls and quotes do not generate trading fees.
 9. A new recipient wallet may not yet exist on chain. Native builds now return an operator setup error instead of relying on a small first fee transfer to initialize it. A read-only launch check found that recipient setup is still required; no funds were moved.
+10. Standalone authentication uses `API_KEY` and standard bearer authorization throughout the implementation, examples and OpenAPI contracts. Missing configuration fails closed; incorrect credentials return 401 with a bearer challenge. Keys never appear in error responses.
 
 ## Verification
 
@@ -21,6 +22,7 @@ Scope: the public API, exact-fee CPI wrapper, routing checks, fee disclosure, ex
 - Rust formatting and Clippy run with warnings treated as errors. JavaScript syntax, OpenAPI schemas, Worker bundling and npm dependency audit are checked.
 - CI includes Node 22/24, Rust host checks and SBF compilation. The README badge links to actual run status; a configured job is not proof that it passed.
 - A separate Linux/macOS LiteSVM suite loads the compiled fee router and a compiled mock market. It tests actual runtime fee transfers, all eight instruction variants, stage/recipient rejection and atomic rollback after a later instruction fails. The mock market is a test double, not Pump's implementation, and is never deployed. Its dependencies are isolated from the API runtime.
+- [CI run 38284556916](https://github.com/aguilardmarkanthony/pumpfun-trade-api-public/actions/runs/38284556916) passed the host checks, SBF compilation and all 11 local VM tests. This verifies the mock-market scenarios, not live protocol compatibility.
 - The public export starts with a new history. Private deployment records, encrypted credentials, research files and the original repository's history are excluded.
 
 ## Limits and remaining release work

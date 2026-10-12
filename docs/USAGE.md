@@ -1,5 +1,9 @@
 # Use the API
 
+The operator does not approve customer trades or fee payments. Clients request a build, sign it with their own wallet and submit it. A trading bot can automate signing on the customer's side; the API never receives the signing key. Successful execution collects the service fee as part of the same transaction.
+
+In this preview, `API_KEY` is chosen by whoever hosts the server and shared with trusted clients. There is no signup portal or automatic key issuance yet. It is an API access key, not a wallet key. Initial deployment and fee-account setup are separate from routine trading and are not complete for a hosted service.
+
 ## 1. Pick the token and amount
 
 Use a Solana token's **mint address**, not its ticker. Send your public wallet address, never your seed phrase or private key.
@@ -41,7 +45,7 @@ import { quoteTrade } from './examples/client.mjs';
 
 const settings = {
   baseUrl: 'http://localhost:8787',
-  apiSecret: process.env.API_SECRET
+  apiKey: process.env.API_KEY
 };
 const order = {
   publicKey: process.env.WALLET_ADDRESS,
@@ -76,7 +80,7 @@ console.log(response.venue, response.simulation.status);
 // This example does not sign or submit an order.
 ```
 
-The client performs basic signer, wrapper and recipient checks. These are not a full independent transaction audit. Use an endpoint and deployed program you trust, and inspect every instruction before wallet approval. Keep your server's proxy secret on the server; do not put it in a public browser bundle.
+The client performs basic signer, wrapper and recipient checks. These are not a full independent transaction audit. Use an endpoint and deployed program you trust, and inspect every instruction before wallet approval. Keep your API key on the server; do not put it in a public browser bundle.
 
 ## 4. Let the wallet handle execution
 
