@@ -20,6 +20,14 @@ Every hosted build requires unsigned simulation, checks the fee transfer against
 
 These are reasons to evaluate the service, not evidence that it is faster or safer than every alternative. Both competitors already support local signing and automatic routing. They cover more markets; we currently support only SOL-paired Pump curves and canonical PumpSwap pools. We do not provide transaction delivery, Jito bundles, trading history or a production SLA. Public beta capacity is limited. First-trader fee-account rent can outweigh commission on a small trade.
 
+## PumpDev screenshot follow-up
+
+The owner supplied a PumpDev homepage screenshot during this review. Its detailed [pricing page](https://pumpdev.io/fees) lists **0.25% for local trades** and **0.5% for Lightning trading**. Our 0.25% matches the comparable local service; the homepage's prominent 0.25% label should not be read as its Lightning rate.
+
+PumpDev also offers client-side signing and curve/PumpSwap handling. Its reviewed [local trading reference](https://pumpdev.io/trade-api) documents a binary transaction response, percentage sells and non-SOL quote assets. It does not list a caller-selected service-fee ceiling or a structured simulation/cost report on that page. Our JSON response and `maxServiceFeeBps` are concrete interface differences, not proof that PumpDev has no internal validation. Neither local signing nor automatic routing is unique to us.
+
+PumpDev's [homepage](https://pumpdev.io/) advertises token creation, WebSocket feeds and Jito bundles, which this service does not implement. Its [Lightning setup](https://pumpdev.io/lightning-setup) describes server-side signing with a prepared wallet; this repository remains an unsigned builder. No competitor trade was executed and no comparative speed benchmark was run. Their clear title, code example and documentation links are useful presentation references; their speed and lowest-fee claims are not our claims.
+
 ## What still needs customer validation
 
 Published competitor prices show an established commercial category, not demand for this particular API. The buyer hypothesis is a wallet or bot developer who values a structured trade review and explicit cost controls more than broad venue coverage. The acquisition route is the public repository, runnable examples and voluntary developer evaluations; no outreach has been sent.

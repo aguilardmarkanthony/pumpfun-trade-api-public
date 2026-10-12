@@ -2,8 +2,12 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Pump Trade Router",
-    "version": "0.3.0-beta",
+    "version": "0.3.1-beta",
     "description": "Standalone unsigned Pump/PumpSwap trade API. Public access needs no API key. Automatic stage detection; 25 bps fee in WSOL through Jupiter Metis. First trader funds fee-account rent if missing. Builds require simulation. No execution guarantee."
+  },
+  "externalDocs": {
+    "description": "Public quickstart, routing and fees",
+    "url": "https://pump-trade-router.apilabph.workers.dev/"
   },
   "servers": [
     {

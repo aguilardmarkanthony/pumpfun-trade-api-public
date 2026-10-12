@@ -1,2 +1,9 @@
 import {createService} from './service.js';
-export default createService();
+import {documentationResponse} from './discovery.js';
+
+const service = createService();
+export default {
+  fetch(request, env, ctx) {
+    return documentationResponse(request) ?? service.fetch(request, env, ctx);
+  },
+};

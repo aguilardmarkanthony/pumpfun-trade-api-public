@@ -1,5 +1,5 @@
 import {isIP} from 'node:net';
-export const VERSION = '0.3.0-beta';
+export const VERSION = '0.3.1-beta';
 export class ApiError extends Error {
   constructor(status, code, message) { super(message); this.status = status; this.code = code; }
 }

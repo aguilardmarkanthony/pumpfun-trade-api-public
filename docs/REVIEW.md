@@ -1,5 +1,13 @@
 # Review record - October 13, 2026
 
+## 0.3.1-beta documentation delivery review
+
+The public origin previously returned a JSON 404 at `/`. Added a static HTML quickstart, robots file and sitemap at the existing origin. The Worker dispatches only these three exact paths before the existing API service. They make no RPC calls, expose no infrastructure credentials and support GET/HEAD only. API authentication, fee ceilings, rate limiting and transaction validation remain in the original service. Canonical links use a fixed published origin; request host/query text is never interpolated. A restrictive content security policy prevents scripts, embedding and form submission.
+
+Review fixed stray `+` characters in the generated curl example and removed a duplicated fee value from the page metadata. The example test decodes the published HTML and validates both request bodies against the current input parser. Regression checks also cover HEAD/405 behavior, canonical-host injection, the sitemap and trade protection at the actual Worker entry point. The OpenAPI generator now reads the runtime version instead of maintaining a second version literal.
+
+The original 67 JavaScript tests and five new documentation/entry-point tests pass. Syntax/OpenAPI/link validation, Worker dry-run bundling and the dependency audit pass. Search Console ownership and Google indexing remain unverified; successful delivery is not a search ranking claim. Runtime deployment evidence is tracked in [deployment](DEPLOYMENT.md).
+
 ## 0.3.0-beta review
 
 The owner requested a 25-bps (0.25%) fee. Review found hard-coded 10-bps checks in the upstream instruction audit, response, sample client and experimental Rust program. Those now agree on 25 bps; JavaScript response/audit logic uses the shared fee constant. Arithmetic tests cover rounding below one lamport and u64 maximum amounts. No fee recipient changed.

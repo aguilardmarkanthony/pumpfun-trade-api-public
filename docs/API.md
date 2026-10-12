@@ -1,6 +1,8 @@
 # API reference
 
-Standalone unsigned Pump/PumpSwap trading API, version 0.3.0-beta. Default public access requires **no API key**. All responses are JSON with a request ID. Rate limits return HTTP 429 with `Retry-After: 60`.
+Standalone unsigned Pump/PumpSwap trading API, version 0.3.1-beta. Default public access requires **no API key**. All `/api/*` responses are JSON with a request ID. Rate limits return HTTP 429 with `Retry-After: 60`.
+
+The root `/` serves public HTML documentation. `/robots.txt` and `/sitemap.xml` support search discovery. These static routes accept GET and HEAD, do not use RPC and do not consume the API's application rate limits. They are separate from the JSON API contract below.
 
 | Method and route | Purpose |
 | --- | --- |

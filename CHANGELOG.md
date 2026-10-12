@@ -1,5 +1,12 @@
 # Release changes
 
+## 0.3.1-beta - October 13, 2026
+
+- The existing API address now serves a public HTML quickstart with buy/sell examples, supported markets, service fees, first-use rent and GitHub documentation links.
+- Added a canonical URL, descriptive page metadata, robots rules and a sitemap. These make documentation available to search crawlers; Google indexing and ranking are not confirmed by deployment.
+- Static GET/HEAD routes make no upstream calls and leave the trading API's authentication and rate limits in place. Unsupported methods return 405.
+- The OpenAPI generator reads the runtime version and links to the public quickstart. Trade behavior and the 25-bps fee are unchanged.
+
 ## 0.3.0-beta - October 13, 2026
 
 - Service fee increases from 10 bps (0.1%) to 25 bps (0.25%). The recipient remains unchanged. Buy fees stay inside the requested SOL budget; sell fees come from actual SOL proceeds. All fee amounts round down to whole lamports.

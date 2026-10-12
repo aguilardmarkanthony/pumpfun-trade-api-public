@@ -10,6 +10,8 @@ Give the API a token mint, your public wallet address and an amount. It checks t
 
 Pump Trade Router is maintained by API Lab PH and is not an official Pump.fun or PumpSwap product.
 
+[Read the public quickstart](https://pump-trade-router.apilabph.workers.dev/) for curl examples, buying and selling, routing behavior and fees.
+
 ## What it does
 
 - Detects curve versus graduated tokens from chain state and checks again before returning a build.
