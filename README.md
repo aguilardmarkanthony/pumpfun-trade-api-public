@@ -2,7 +2,7 @@
 
 Buy and sell Pump tokens without guessing which market they use.
 
-[![Checks](https://github.com/aguilardmarkanthony/pumpfun-trade-api-public/actions/workflows/ci.yml/badge.svg)](https://github.com/aguilardmarkanthony/pumpfun-trade-api-public/actions/workflows/ci.yml)
+[![Checks](https://github.com/apilabph/pumpfun-trade-api-public/actions/workflows/ci.yml/badge.svg)](https://github.com/apilabph/pumpfun-trade-api-public/actions/workflows/ci.yml)
 
 Give the API a token mint, your public wallet address and an amount. It checks the token's on-chain stage, selects the bonding curve or canonical PumpSwap pool, and returns a simulated, unsigned transaction. Your wallet or bot signs and submits it.
 
@@ -20,10 +20,10 @@ Migration, price changes, blockhash expiry and network conditions can still caus
 
 ## First request
 
-The endpoint and deployment verification are recorded in [Deployment](docs/DEPLOYMENT.md). With the API running locally:
+Public endpoint: **https://pump-trade-router.apilabph.workers.dev**. No API key is needed. [Deployment and verification](docs/DEPLOYMENT.md).
 
 ```sh
-curl http://localhost:8787/api/quote \
+curl https://pump-trade-router.apilabph.workers.dev/api/quote \
   -H "Content-Type: application/json" \
   --data '{"publicKey":"YOUR_PUBLIC_WALLET","mint":"TOKEN_MINT","action":"buy","amount":"0.01","pool":"auto","slippageBps":100}'
 ```
@@ -32,7 +32,7 @@ Replace both addresses. On Windows PowerShell, use `curl.exe` and put the comman
 
 Change `/api/quote` to `/api/trade/local` to receive an unsigned base64 transaction. For a sell, use `"action":"sell"` and a raw token amount: `"1000000"` means one token with six decimals.
 
-[Step-by-step usage and JavaScript](docs/USAGE.md) � [API reference](docs/API.md) � [OpenAPI](docs/openapi.json)
+[Step-by-step usage and JavaScript](docs/USAGE.md) - [API reference](docs/API.md) - [OpenAPI](docs/openapi.json) - [Transaction speed](docs/PERFORMANCE.md)
 
 ## Fees, without surprises
 
@@ -51,7 +51,7 @@ The operator does not approve customer trades or pay an initial 0.005 SOL deposi
 ## Run it yourself
 
 ```sh
-git clone https://github.com/aguilardmarkanthony/pumpfun-trade-api-public.git
+git clone https://github.com/apilabph/pumpfun-trade-api-public.git
 cd pumpfun-trade-api-public
 npm ci --ignore-scripts
 ```
@@ -73,7 +73,7 @@ npm run build:check
 npm audit --audit-level=moderate
 ```
 
-[Review and verification](docs/REVIEW.md) � [Security](SECURITY.md) � [License](LICENSE)
+[Review and verification](docs/REVIEW.md) - [Security](SECURITY.md) - [License](LICENSE)
 
 This is an unsigned transaction builder, not an execution service. Newly created tokens may not yet be indexed by Jupiter. Raydium, non-SOL pairs and unsupported token extensions fail closed. Public beta request limits protect shared capacity; there is no uptime or execution guarantee.
 

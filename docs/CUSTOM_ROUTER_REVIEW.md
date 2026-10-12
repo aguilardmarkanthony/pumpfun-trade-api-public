@@ -24,7 +24,7 @@ Scope: the public API, exact-fee CPI wrapper, routing checks, fee disclosure, ex
 - Rust formatting and Clippy run with warnings treated as errors. JavaScript syntax, OpenAPI schemas, Worker bundling and npm dependency audit are checked.
 - CI includes Node 22/24, Rust host checks and SBF compilation. The README badge links to actual run status; a configured job is not proof that it passed.
 - A separate Linux/macOS LiteSVM suite loads the compiled fee router and a compiled mock market. It tests actual runtime fee transfers, all eight instruction variants, stage/recipient rejection and atomic rollback after a later instruction fails. The mock market is a test double, not Pump's implementation, and is never deployed. Its dependencies are isolated from the API runtime.
-- [CI run 38284556916](https://github.com/aguilardmarkanthony/pumpfun-trade-api-public/actions/runs/38284556916) passed the host checks, SBF compilation and all 11 local VM tests. This verifies the mock-market scenarios, not live protocol compatibility.
+- [CI run 38284556916](https://github.com/apilabph/pumpfun-trade-api-public/actions/runs/38284556916) passed the host checks, SBF compilation and all 11 local VM tests. This verifies the mock-market scenarios, not live protocol compatibility.
 - The public export starts with a new history. Private deployment records, encrypted credentials, research files and the original repository's history are excluded.
 
 ## Limits and remaining release work

@@ -30,7 +30,7 @@ From this repository:
 import {buildTrade, quoteTrade} from './examples/client.mjs';
 
 const settings = {
-  baseUrl: 'http://localhost:8787', // Replace with the deployed endpoint.
+  baseUrl: 'https://pump-trade-router.apilabph.workers.dev',
   rpcUrl: process.env.SOLANA_RPC_URL // Used to resolve transaction lookup tables.
 };
 const order = {

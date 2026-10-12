@@ -4,7 +4,7 @@
   "private": true,
   "license": "MIT",
   "description": "Standalone Pump/PumpSwap unsigned trade API with automatic routing and a transparent 0.1% fee.",
-  "repository": "github:aguilardmarkanthony/pumpfun-trade-api-public",
+  "repository": "github:apilabph/pumpfun-trade-api-public",
   "type": "module",
   "engines": {
     "node": ">=22"

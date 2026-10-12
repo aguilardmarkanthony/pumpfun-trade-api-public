@@ -1,0 +1,83 @@
+{
+  "recordedAt": "2026-10-12T17:57:29.281Z",
+  "base": "https://pump-trade-router.apilabph.workers.dev",
+  "noTransactionsSubmitted": true,
+  "results": [
+    {
+      "venue": "curve",
+      "action": "buy",
+      "status": 200,
+      "buildMilliseconds": 1502,
+      "simulation": {
+        "status": "passed",
+        "contextSlot": 456136810,
+        "unitsConsumed": 87748,
+        "signatureVerification": false,
+        "serviceFeeLamports": "100"
+      },
+      "fee": 10,
+      "feeRecipient": "54pRN3VR97d6ELqu7uBeB5eu8nTKPnjPp2q2nJhb7CRv",
+      "setupRent": "1488440",
+      "transactionBytes": 767,
+      "unsigned": true,
+      "submitted": false
+    },
+    {
+      "venue": "curve",
+      "action": "sell",
+      "status": 200,
+      "buildMilliseconds": 733,
+      "simulation": {
+        "status": "passed",
+        "contextSlot": 456136813,
+        "unitsConsumed": 85136,
+        "signatureVerification": false,
+        "serviceFeeLamports": "27"
+      },
+      "fee": 10,
+      "feeRecipient": "54pRN3VR97d6ELqu7uBeB5eu8nTKPnjPp2q2nJhb7CRv",
+      "setupRent": "1488440",
+      "transactionBytes": 713,
+      "unsigned": true,
+      "submitted": false
+    },
+    {
+      "venue": "pumpswap",
+      "action": "buy",
+      "status": 200,
+      "buildMilliseconds": 538,
+      "simulation": {
+        "status": "passed",
+        "contextSlot": 456136815,
+        "unitsConsumed": 108460,
+        "signatureVerification": false,
+        "serviceFeeLamports": "100"
+      },
+      "fee": 10,
+      "feeRecipient": "54pRN3VR97d6ELqu7uBeB5eu8nTKPnjPp2q2nJhb7CRv",
+      "setupRent": "1488440",
+      "transactionBytes": 674,
+      "unsigned": true,
+      "submitted": false
+    },
+    {
+      "venue": "pumpswap",
+      "action": "sell",
+      "status": 200,
+      "buildMilliseconds": 541,
+      "simulation": {
+        "status": "passed",
+        "contextSlot": 456136818,
+        "unitsConsumed": 106058,
+        "signatureVerification": false,
+        "serviceFeeLamports": "6728"
+      },
+      "fee": 10,
+      "feeRecipient": "54pRN3VR97d6ELqu7uBeB5eu8nTKPnjPp2q2nJhb7CRv",
+      "setupRent": "1488440",
+      "transactionBytes": 652,
+      "unsigned": true,
+      "submitted": false
+    }
+  ]
+}

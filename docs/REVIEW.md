@@ -1,4 +1,4 @@
-# Review record � October 13, 2026
+# Review record - October 13, 2026
 
 Scope: standalone Jupiter-based API, public access, recipient setup, fee disclosure, client examples and deployment separation. This is an implementation review, not an independent security audit.
 
@@ -16,6 +16,10 @@ Scope: standalone Jupiter-based API, public access, recipient setup, fee disclos
 ## Verification
 
 Node tests cover routing, tampered fees, recipients, amounts, slippage, signer changes, forced simulation, RPC failures, missing fee evidence, existing WSOL preservation, private bearer access and public rate limits. Syntax, OpenAPI validation, Worker bundling and dependency audit also run in CI on Node 22 and 24.
+
+All 61 JavaScript tests passed for the deployed implementation, and [CI run 38287467206](https://github.com/apilabph/pumpfun-trade-api-public/actions/runs/38287467206) passed Node 22/24 checks, Rust checks, SBF compilation and all 11 custom-router VM tests. The hosted default Jupiter path separately passed the four mainnet simulations in [the release record](verification.json). Public rate limiting returned 429 with `Retry-After: 60`.
+
+The content review updated the GitHub owner to `apilabph`, removed invalid text encoding, linked the live endpoint, marked manual wallet setup as optional and added checks for broken documentation links, version disagreement and an accidental API-key requirement in the public quickstart. Public examples require no marketplace subscription or customer key.
 
 Unsigned mainnet simulations passed for curve buy/sell and canonical PumpSwap buy/sell with the recipient WSOL account initially absent. They verified automatic account creation, nonzero 0.1% fee transfers, transaction sizes below 1,232 bytes and compute use below the 400,000-unit cap. No private keys were loaded, no signatures created, no trades broadcast and no balances changed. This evidence covers the tested tokens and current protocol versions, not every token or future upgrade.
 
