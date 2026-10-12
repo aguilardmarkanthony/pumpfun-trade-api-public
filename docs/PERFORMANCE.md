@@ -20,7 +20,9 @@ An RPC returning a transaction signature means it accepted the submission, not t
 
 ## What we measured
 
-Four hosted unsigned simulations on October 13, 2026 took 1,502 ms (curve buy), 733 ms (curve sell), 538 ms (PumpSwap buy) and 541 ms (PumpSwap sell), measured from the release machine. These include API access, routing and simulation, not signing, broadcasting or confirmation. This small sample is not a latency guarantee or a percentile benchmark. [Recorded results](verification.json).
+Four hosted 0.3.0-beta unsigned builds on October 13, 2026 took 1,187 ms (curve buy), 689 ms (curve sell), 545 ms (PumpSwap buy) and 545 ms (PumpSwap sell), measured from the release machine. Each used seven RPC calls. These timings include API access, routing and simulation, not signing, broadcasting or confirmation. This small sample is not a latency guarantee, a percentile benchmark or a controlled comparison with the previous release. [Recorded results](verification-0.3.0-hosted.json).
+
+The verified optimization removes one serial RPC round trip. Measuring p50/p95 under representative load and across regions is still required before advertising sustained subsecond response times or comparing speed with competitors. Shared beta rate limits and upstream availability are material limits; no paid infrastructure upgrade was enabled.
 
 ## Client guidance
 

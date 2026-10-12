@@ -10,7 +10,7 @@ Performance review combined the fee-account/router read with the confirmed prici
 
 All 67 JavaScript tests, syntax/OpenAPI checks, Worker dry-run bundling, npm audit (zero vulnerabilities), Rust formatting, three Rust host tests and Clippy passed locally. Four fresh unsigned real-protocol simulations passed at 25 bps; [local results](verification-0.3.0-local.json) used seven RPC calls per build and took 434-713 ms from the development environment. One earlier four-request attempt failed with RPC minimum-context-slot errors; a fresh attempt succeeded without weakening slot validation. These are sample timings, not a latency SLA or capacity test. Hosted results and CI status are recorded in [deployment](DEPLOYMENT.md).
 
-The experimental Rust program is still undeployed. Its previous VM results below are historical; this release's compiled-program CI must pass with the new expected fee amounts. No real trade was signed or submitted.
+The experimental Rust program is still undeployed. [CI run 38290653485](https://github.com/apilabph/pumpfun-trade-api-public/actions/runs/38290653485) passed Node 22/24, Rust host checks, SBF compilation and all 11 VM tests with the new fee amounts. The deployed Jupiter service separately passed [four hosted real-protocol simulations](verification-0.3.0-hosted.json), public version/fee checks and 409 rejection of the old 10-bps ceiling. No real trade was signed or submitted.
 
 ## Historical 0.2.0-beta review
 
