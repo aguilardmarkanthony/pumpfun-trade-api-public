@@ -34,19 +34,11 @@ Change `/api/quote` to `/api/trade/local` to receive an unsigned base64 transact
 
 [Step-by-step usage and JavaScript](docs/USAGE.md) - [API reference](docs/API.md) - [OpenAPI](docs/openapi.json) - [Transaction speed](docs/PERFORMANCE.md)
 
-## Fees, without surprises
+## Trading costs
 
-| Item | What happens |
-| --- | --- |
-| Buy | 0.1% of the requested SOL input goes to the service; the remainder funds the swap. |
-| Sell | 0.1% of actual SOL proceeds is deducted before the trader receives the rest. |
-| Fee destination | `54pRN3VR97d6ELqu7uBeB5eu8nTKPnjPp2q2nJhb7CRv`, in wrapped SOL. |
-| First use | If the service's receiving account is missing, the first trader funds its creation. The build discloses the rent separately. |
-| Network and protocol costs | Separate from our fee; account rent may also be needed for the trader or protocol. |
+Successful trades include a **0.1% service fee**, paid in wrapped SOL: included in the requested SOL budget for buys, or deducted from actual SOL proceeds for sells. Network fees, protocol fees and account rent are separate.
 
-For a 1 SOL buy budget, the service fee is 0.001 SOL. Fees round down to whole lamports. Wrapped SOL represents SOL 1:1 and is controlled by the recipient wallet.
-
-The operator does not approve customer trades or pay an initial 0.005 SOL deposit. Customer-side signing remains necessary. If a trade fails, its service fee and account creation roll back; Solana may still charge the network fee. [Full fee details](docs/FEES.md).
+If the service's receiving account is missing, the first trader pays its setup rent; the build reports this separately before signing. See [fee details, examples and the recipient address](docs/FEES.md).
 
 ## Run it yourself
 
