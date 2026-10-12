@@ -1,5 +1,17 @@
 # Review record - October 13, 2026
 
+## Local bot execution review
+
+The owner chose signing inside each user's bot. Added `executeTrade`, read-only `trackTrade`, strict pre-sign inspection and a file journal as Node client examples. No server endpoint signs or broadcasts; the hosted runtime and OpenAPI contract remain 0.3.1-beta. The fee remains 25 bps to the existing recipient.
+
+Review found that the earlier basic client inspection was insufficient for automatic signing. The execution path now reconstructs every outer instruction, validates canonical market/protocol and the SOL token program, rejects extra transfers and compute changes, preserves existing WSOL, and validates lookup-table owner, activation and addresses. Lookup reads are cached within inspection. The signer must return the identical message with a valid Ed25519 signature. Estimated network and fee-account setup costs have explicit ceilings; these estimates do not cap all on-chain account rent.
+
+Review also addressed ambiguous submission and recovery: reserve a stable order ID before building, persist its signature before sending, keep preflight enabled, accept confirmed/finalized status only, and never infer non-execution solely from a missing signature after expiry. Lost replies, hanging providers and cancelled tracking return uncertainty with the original signature. An exception after a possible send must never be labeled `not_submitted`. Signing and RPC waits are bounded, and no timeout creates a new signature. A repeated order ID performs status lookup only. Interrupted reservations fail closed; the file adapter is for persistent local disk on one machine, not a distributed execution guarantee.
+
+Twenty new tests exercise all four synthetic trade directions/stages, valid and modified signatures, extra instructions, cost limits, RPC errors/timeouts, confirmed failures versus processed errors, expiry, cancellation (including during an RPC wait), restart/read-only recovery, journal failures, atomic reservations and lookup-table ownership/activation. The existing four builder tests also pass their output through strict execution inspection. All signatures in these tests use ephemeral local fixture wallets with synthetic non-executable instructions and mocked HTTP/RPC. No live trade is signed, submitted or used to measure performance. This is an internal code review, not an independent security audit.
+
+Local verification passed all 92 JavaScript tests, syntax/OpenAPI/documentation-link validation, Worker dry-run bundling and dependency audit (zero vulnerabilities). See the [bot guide](BOT-EXECUTION.md) for setup, return states and limitations. GitHub Actions verifies Node 22/24 and the existing experimental Rust program on publication; deployed HTML release evidence remains separate.
+
 ## 0.3.1-beta documentation delivery review
 
 The public origin previously returned a JSON 404 at `/`. Added a static HTML quickstart, robots file and sitemap at the existing origin. The Worker dispatches only these three exact paths before the existing API service. They make no RPC calls, expose no infrastructure credentials and support GET/HEAD only. API authentication, fee ceilings, rate limiting and transaction validation remain in the original service. Canonical links use a fixed published origin; request host/query text is never interpolated. A restrictive content security policy prevents scripts, embedding and form submission.

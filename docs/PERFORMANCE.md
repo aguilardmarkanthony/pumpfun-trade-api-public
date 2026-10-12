@@ -26,6 +26,8 @@ The verified optimization removes one serial RPC round trip. Measuring p50/p95 u
 
 ## Client guidance
 
+The [local bot helper](BOT-EXECUTION.md) combines build, signing, submission and status tracking in one function call and records each stage's elapsed time. It keeps simulation, local checks and RPC preflight enabled. This reduces integration work; no live execution benchmark was performed and the helper is not evidence of lower confirmation latency.
+
 Use a healthy RPC with low latency from the machine running the bot. Build close to signing time, honor rate limits, and track the returned blockhash expiry. When rebroadcasting, resend the same signed bytes while they remain valid; creating a new signed order before resolving the first one's status can cause a duplicate trade. [Solana retry guidance](https://solana.com/developers/cookbook/transactions/retry).
 
 The `priorityFee` input is a maximum budget in lamports and defaults to zero. It is separate from our 0.25% service fee. A priority fee can improve inclusion priority during congestion, but does not guarantee a successful or faster trade. The builder uses a 400,000 compute-unit limit and converts that budget into a bounded compute-unit price. [Solana fee documentation](https://solana.com/docs/core/fees).

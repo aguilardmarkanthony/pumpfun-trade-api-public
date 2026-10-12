@@ -1,4 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
+import {inspectExecution} from '../examples/execution-inspection.mjs';
 import {SystemProgram,VersionedTransaction} from '@solana/web3.js';
 import {NATIVE_MINT,TOKEN_PROGRAM_ID,getAssociatedTokenAddressSync} from '@solana/spl-token';
 import {auditRoute,jupiterTrade,JUPITER_PROGRAM,composeRoute,resolveTables} from '../src/jupiter.js';
@@ -24,7 +25,7 @@ async function sample(graduated=false,action='buy',existingWsol=false){
 for(const graduated of [false,true])for(const action of ['buy','sell'])test(`Jupiter ${graduated?'AMM':'curve'} ${action} builds a simulated fee-bearing unsigned transaction`,async()=>{
  const f=await sample(graduated,action);f.body.maxServiceFeeBps=25;const r=await jupiterTrade(f.body,{},true,()=>f.rpc,f.fetcher);
  assert.equal(r.serviceFeeBps,25);assert.equal(r.feeRecipient,FEE_RECIPIENT.toBase58());assert.equal(r.feeAsset,'WSOL');assert.equal(r.simulation.status,'passed');assert.equal(r.submitted,false);assert.equal(r.feeAccountSetupRequired,true);assert.ok(BigInt(r.feeAccountSetupRentLamports)>0n);
- await inspectPublicBuild(r,f.body,{});const tx=VersionedTransaction.deserialize(Buffer.from(r.transaction,'base64'));assert.equal(tx.message.header.numRequiredSignatures,1);assert.ok(tx.signatures.every(s=>s.every(b=>b===0)));
+ await inspectPublicBuild(r,f.body,{});await inspectExecution(r,f.body,{getAccountInfo:async()=>null});const tx=VersionedTransaction.deserialize(Buffer.from(r.transaction,'base64'));assert.equal(tx.message.header.numRequiredSignatures,1);assert.ok(tx.signatures.every(s=>s.every(b=>b===0)));
  const swap=tx.message.compiledInstructions.find(i=>tx.message.staticAccountKeys[i.programIdIndex].equals(JUPITER_PROGRAM));assert.equal(Buffer.from(swap.data).readUInt16LE(26),25);if(!graduated&&action==='buy')assert.equal(swap.data[35],0);
 });
 test('Jupiter rejects fee changes, foreign signers, redirected outputs, extra routes and weakened bounds',async()=>{

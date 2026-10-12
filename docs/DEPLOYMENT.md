@@ -4,6 +4,8 @@ The default configuration uses Cloudflare Workers and Jupiter's existing on-chai
 
 ## Hosted public beta
 
+The [local execution helper](BOT-EXECUTION.md) is an additional GitHub client example. It runs in each user's bot and requires no Worker deployment or server signing secret. The deployed source below identifies the hosted API, not a claim that the client runs on the server.
+
 **https://pump-trade-router.apilabph.workers.dev** runs **0.3.1-beta** with a **0.25% service fee** and public access. No customer API key is required. It was deployed and verified on October 13, 2026 (Singapore time).
 
 - Runtime source: `faad60952a2fe972519df9adcec7e8177f215606`.

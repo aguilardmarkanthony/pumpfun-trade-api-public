@@ -9,3 +9,4 @@ research/
 **/target/
 **/*keypair*.json
 release-artifacts/
+.trade-journal/

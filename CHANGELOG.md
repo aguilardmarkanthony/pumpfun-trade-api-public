@@ -1,5 +1,12 @@
 # Release changes
 
+## Client addition - October 13, 2026
+
+- Added Node `executeTrade()` and read-only `trackTrade()` examples for execution inside the user's bot. The deployed API remains unsigned 0.3.1-beta; no server signing endpoint or API contract changed.
+- Added strict outer-instruction reconstruction, local signature verification, cost-estimate ceilings and expiry checks before submission. The 0.25% service fee and caller's ceiling remain enforced.
+- Added a persistent local order journal, bounded RPC waits and explicit confirmed/failed/pending/unknown results. Reusing an order ID resumes status lookup without creating a second trade. No automatic rebuild after a timeout.
+- Added usage and recovery documentation. Synthetic tests sign only local, non-executable fixtures; nothing is sent to a network or used to claim live performance.
+
 ## 0.3.1-beta - October 13, 2026
 
 - The existing API address now serves a public HTML quickstart with buy/sell examples, supported markets, service fees, first-use rent and GitHub documentation links.
@@ -17,4 +24,4 @@
 
 Clients pinned to the old 10-bps policy intentionally reject the new fee. Review the new price and update the client before using this release. Sending `maxServiceFeeBps: 10` returns a fee-limit error; the server never silently increases the supplied ceiling.
 
-See [deployment](docs/DEPLOYMENT.md) for live status and [review](docs/REVIEW.md) for verification evidence. No test transaction is signed or submitted.
+See [deployment](docs/DEPLOYMENT.md) for live status and [review](docs/REVIEW.md) for verification evidence. No live test transaction is signed or submitted.

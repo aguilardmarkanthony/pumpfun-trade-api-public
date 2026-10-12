@@ -24,6 +24,8 @@ Use `/api/quote` with the same body for a quote without a transaction or simulat
 
 ## JavaScript
 
+For automatic execution in an existing Node bot, use the [local execution helper](BOT-EXECUTION.md). The example below stops at an unsigned build for manual wallet integration.
+
 From this repository:
 
 ```js

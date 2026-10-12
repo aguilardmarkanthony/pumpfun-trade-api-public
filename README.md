@@ -49,6 +49,10 @@ Change `/api/quote` to `/api/trade/local` to receive an unsigned base64 transact
 
 [Step-by-step usage and JavaScript](docs/USAGE.md) - [API reference](docs/API.md) - [OpenAPI](docs/openapi.json) - [Transaction speed](docs/PERFORMANCE.md)
 
+## Automate it in your bot
+
+Use [`executeTrade()`](docs/BOT-EXECUTION.md) to build, inspect, sign locally, submit and track a trade in one JavaScript call. Your bot keeps its keys. A persistent trade ID prevents the helper from creating another trade when a submission reply is lost. The guide includes buy/sell examples, cost limits and restart recovery. This is local bot execution; the hosted API still returns unsigned transactions.
+
 ## Trading costs
 
 Successful trades include a **0.25% service fee**, paid in wrapped SOL: included in the requested SOL budget for buys, or deducted from actual SOL proceeds for sells. Network fees, protocol fees and account rent are separate.
@@ -84,7 +88,7 @@ npm audit --audit-level=moderate
 
 [Review and verification](docs/REVIEW.md) - [Security](SECURITY.md) - [License](LICENSE)
 
-This is an unsigned transaction builder, not an execution service. Newly created tokens may not yet be indexed by Jupiter. Raydium, non-SOL pairs and unsupported token extensions fail closed. Public beta request limits protect shared capacity; there is no uptime or execution guarantee.
+The hosted API is an unsigned transaction builder. The optional client helper executes inside the user's bot. Newly created tokens may not yet be indexed by Jupiter. Raydium, non-SOL pairs and unsupported token extensions fail closed. Public beta request limits protect shared capacity; there is no uptime or execution guarantee.
 
 The earlier custom Rust router is retained as an **experimental alternative**, with its own [review record](docs/CUSTOM_ROUTER_REVIEW.md). The default service does not use it and does not require its deployment.
 

@@ -34,13 +34,17 @@ export function inspectBuild(response,order,expectedRouterProgramId){
   return transaction;
 }
 
-export async function buildTrade(settings,order){
+export async function buildTrade(settings,order,{forExecution=false}={}){
   order=withFeeLimit(order);
   const response=await request(settings,'/api/trade/local',{...order,simulate:true});
   if(response.simulation?.status!=='passed') throw new Error('A successful simulation is required by this example.');
-  const transaction=settings.expectedRouterProgramId
+  const connection=settings.connection??new Connection(settings.rpcUrl??'https://api.mainnet-beta.solana.com','confirmed');
+  if(forExecution&&settings.expectedRouterProgramId)throw new Error('Execution supports the default Jupiter engine only.');
+  const transaction=forExecution
+    ? await (await import('./execution-inspection.mjs')).inspectExecution(response,order,connection)
+    : settings.expectedRouterProgramId
     ? inspectBuild(response,order,settings.expectedRouterProgramId)
-    : await inspectPublicBuild(response,order,settings.connection??new Connection(settings.rpcUrl??'https://api.mainnet-beta.solana.com','confirmed'));
+    : await inspectPublicBuild(response,order,connection);
   return {response,transaction};
 }
 
