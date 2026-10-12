@@ -20,6 +20,17 @@ Use ignored `.dev.vars` for local development. For Cloudflare, set secrets using
 
 ## Build the program
 
+For receiving-wallet setup, [examples/fee-wallet-setup.mjs](../examples/fee-wallet-setup.mjs) exports `buildFeeWalletSetup(connection)`. It reads current rent and network fees, reports missing funding, or returns an unsigned transaction that creates only the recipient's WSOL account. The recipient wallet must approve it locally. It does not wrap any SOL or deploy the fee program. If you do not fund/setup the recipient yet, keep this release in preview; no automatic debit occurs.
+
+```js
+import {Connection} from '@solana/web3.js';
+import {buildFeeWalletSetup} from './examples/fee-wallet-setup.mjs';
+const setup = await buildFeeWalletSetup(new Connection(process.env.SOLANA_RPC_URL, 'confirmed'));
+// setup.ready === false: inspect additionalFundingLamports.
+// setup.ready === true: inspect the unsigned transaction in the recipient wallet.
+// setup.alreadyInitialized === true: no ATA creation is needed.
+```
+
 Host tests require Rust 1.89 or later. SBF compilation requires the Agave Solana build tools. CI uses the official Agave 4.3.0 Linux release with its published archive digest, and uploads only the `.so` artifact, never generated keypairs.
 
 ```sh

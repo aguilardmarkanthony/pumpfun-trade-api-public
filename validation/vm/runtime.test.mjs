@@ -32,6 +32,7 @@ async function setup({graduated=false,action='buy',cashback=false,attack}={}){
   for(const [address,info] of f.accounts){
     if(address===ROUTER.toBase58())continue;
     let lamports=BigInt(info.lamports);
+    if(address===state.curveKey.toBase58())lamports=20000000000n;
     if(info.owner.equals(TOKEN_PROGRAM_ID)&&info.data.length===165){
       const token=AccountLayout.decode(info.data);
       if(token.mint.equals(NATIVE_MINT)){
