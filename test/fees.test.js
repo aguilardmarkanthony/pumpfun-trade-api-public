@@ -4,13 +4,35 @@ import {PublicKey, SystemProgram, SystemInstruction, VersionedTransaction} from 
 import {getAssociatedTokenAddressSync,NATIVE_MINT} from '@solana/spl-token';
 import sdk from '../src/sdk.cjs';
 import {feeFor,FEE_RECIPIENT,FEE_ATA,wrapWithFee,routerConfig} from '../src/fees.js';
-import {trade} from '../src/service.js';
+import {trade,createService} from '../src/service.js';
 import {loadState,quoteState,instructions} from '../src/protocol.js';
 import {tradeInput} from '../src/input.js';
 import {fixture,buy,sell,ENV,ROUTER,USER} from './fixtures.js';
 
-test('integer fees are 10 bps, rounded down, without floating point',()=>{
-  for(const [amount,fee] of [[0n,0n],[999n,0n],[1000n,1n],[1000000000n,1000000n],[(1n<<64n)-1n,18446744073709551n]]) assert.equal(feeFor(amount),fee);
+test('integer fees are 25 bps, rounded down, without floating point',()=>{
+  for(const [amount,fee] of [[0n,0n],[399n,0n],[400n,1n],[999n,2n],[1000n,2n],[1000000000n,2500000n],[(1n<<64n)-1n,46116860184273879n]]) assert.equal(feeFor(amount),fee);
+});
+
+test('fee ceilings reject quotes and builds before any RPC work in either engine',async()=>{
+  for(const engine of ['jupiter','custom'])for(const build of [false,true])for(const action of ['buy','sell'])for(const cap of [0,10,24]){
+    await assert.rejects(()=>trade({...action==='buy'?buy:sell,simulate:true,maxServiceFeeBps:cap},{...ENV,TRADE_ENGINE:engine},build,()=>{throw new Error('RPC must not run');}),e=>e.status===409&&e.code==='FEE_LIMIT_EXCEEDED');
+  }
+});
+
+test('fee ceilings require an integer basis-point limit and never override the rate',async()=>{
+  for(const cap of [null,'25',24.5,-1,10001,true,{},[]])assert.throws(()=>tradeInput({...buy,maxServiceFeeBps:cap}),e=>e.code==='INVALID_INPUT');
+  for(const cap of [undefined,25,10000]){
+    const f=await fixture();const r=await trade({...buy,maxServiceFeeBps:cap},ENV,false,()=>f.rpc);
+    assert.equal(r.serviceFeeBps,25);assert.equal(r.estimatedServiceFeeLamports,'25000');
+  }
+});
+
+test('HTTP fee-limit errors have a stable code and return no transaction',async()=>{
+  const service=createService(()=>{throw new Error('RPC must not run');});
+  for(const path of ['/api/quote','/api/trade/local']){
+    const response=await service.fetch(new Request('https://example.test'+path,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer test-ceiling'} ,body:JSON.stringify({...buy,maxServiceFeeBps:10})}),{...ENV,API_KEY:'test-ceiling',TRADE_ENGINE:'jupiter'});
+    assert.equal(response.status,409);const body=await response.json();assert.equal(body.error.code,'FEE_LIMIT_EXCEEDED');assert.equal(body.transaction,undefined);
+  }
 });
 
 test('missing router never silently falls back to an uncharged transaction',async()=>{

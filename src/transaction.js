@@ -60,7 +60,7 @@ export function compileTransaction(ixs,input,state,quote,blockhash) {
   const summary=auditInstructions(ixs,input,state,quote);
   if(!state.routerProgram)throw new ApiError(503,'FEE_ROUTER_NOT_DEPLOYED','Fee router must be deployed and configured before building.');
   ixs=wrapWithFee(ixs,input,state,quote,state.routerProgram);
-  summary.push({programId:state.routerProgram.toBase58(),operation:'atomic_trade_and_10bps_fee',recipient:FEE_RECIPIENT.toBase58(),feeAsset:state.venue==='pump'?'SOL':'WSOL'});
+  summary.push({programId:state.routerProgram.toBase58(),operation:'atomic_trade_and_25bps_fee',recipient:FEE_RECIPIENT.toBase58(),feeAsset:state.venue==='pump'?'SOL':'WSOL'});
   const microLamports=BigInt(input.priorityFee)*1000000n/BigInt(COMPUTE_UNITS);
   const budget=[ComputeBudgetProgram.setComputeUnitLimit({units:COMPUTE_UNITS}),...(microLamports?[ComputeBudgetProgram.setComputeUnitPrice({microLamports})]:[])];
   const message=new TransactionMessage({payerKey:input.user,recentBlockhash:blockhash,instructions:[...budget,...ixs]}).compileToV0Message();

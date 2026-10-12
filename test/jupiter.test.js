@@ -7,12 +7,12 @@ async function sample(graduated=false,action='buy',existingWsol=false){
  const f=await fixture({graduated,existingWsol}),input=tradeInput({...action==='buy'?buy:sell,simulate:true});
  f.accounts.set(JUPITER_PROGRAM.toBase58(),{data:Buffer.alloc(0),owner:SystemProgram.programId,executable:true,lamports:1});
  const state=await loadState(f.rpc,input),isBuy=action==='buy',src=isBuy?NATIVE_MINT:input.mint,dst=isBuy?input.mint:NATIVE_MINT;
- const output=100001n,min=(output*9900n+9999n)/10000n;
+ const output=isBuy?100001n:99851n,min=(output*9900n+9999n)/10000n;
  const addresses=[USER,getAssociatedTokenAddressSync(src,USER),getAssociatedTokenAddressSync(dst,USER),src,dst,TOKEN_PROGRAM_ID,TOKEN_PROGRAM_ID,JUPITER_PROGRAM,new (USER.constructor)('D8cy77BBepLMngZx6ZukaTff5hCt1HrWyKk3Hnd9oitf'),JUPITER_PROGRAM,FEE_ATA,graduated?sdk.swap.PUMP_AMM_PROGRAM_ID:sdk.pump.PUMP_PROGRAM_ID,graduated?state.poolKey:state.curveKey,OTHER,SystemProgram.programId];
- const variant=graduated?(isBuy?193:194):(isBuy?191:192),fields=variant===191?2:1,data=Buffer.alloc(39+fields);Buffer.from([187,100,250,204,49,196,175,20]).copy(data);data.writeBigUInt64LE(input.amount,8);data.writeBigUInt64LE(output,16);data.writeUInt16LE(100,24);data.writeUInt16LE(10,26);data.writeUInt32LE(1,30);data[34]=variant;if(variant===191)data[35]=1;data.writeUInt16LE(10000,35+fields);data[38+fields]=1;
- const route={transactionVersion:0,swapMode:'ExactIn',inputMint:src.toBase58(),outputMint:dst.toBase58(),inAmount:input.amount.toString(),outAmount:String(output),otherAmountThreshold:String(min),slippageBps:100,routePlan:[{percent:100,bps:10000,swapInfo:{ammKey:(graduated?state.poolKey:state.curveKey).toBase58(),label:graduated?'Pump.fun Amm':'Pump.fun',inputMint:src.toBase58(),outputMint:dst.toBase58(),inAmount:input.amount.toString(),outAmount:String(output+100n)}}],swapInstruction:{programId:JUPITER_PROGRAM.toBase58(),accounts:addresses.map((p,i)=>({pubkey:p.toBase58(),isSigner:i===0,isWritable:[1,2,10,12].includes(i)})),data:data.toString('base64')},otherInstructions:[],tipInstruction:null,addressesByLookupTableAddress:{}};
+ const variant=graduated?(isBuy?193:194):(isBuy?191:192),fields=variant===191?2:1,data=Buffer.alloc(39+fields);Buffer.from([187,100,250,204,49,196,175,20]).copy(data);data.writeBigUInt64LE(input.amount,8);data.writeBigUInt64LE(output,16);data.writeUInt16LE(100,24);data.writeUInt16LE(25,26);data.writeUInt32LE(1,30);data[34]=variant;if(variant===191)data[35]=1;data.writeUInt16LE(10000,35+fields);data[38+fields]=1;
+ const route={transactionVersion:0,swapMode:'ExactIn',inputMint:src.toBase58(),outputMint:dst.toBase58(),inAmount:input.amount.toString(),outAmount:String(output),otherAmountThreshold:String(min),slippageBps:100,routePlan:[{percent:100,bps:10000,swapInfo:{ammKey:(graduated?state.poolKey:state.curveKey).toBase58(),label:graduated?'Pump.fun Amm':'Pump.fun',inputMint:src.toBase58(),outputMint:dst.toBase58(),inAmount:input.amount.toString(),outAmount:String(isBuy?output:100101n)}}],swapInstruction:{programId:JUPITER_PROGRAM.toBase58(),accounts:addresses.map((p,i)=>({pubkey:p.toBase58(),isSigner:i===0,isWritable:[1,2,10,12].includes(i)})),data:data.toString('base64')},otherInstructions:[],tipInstruction:null,addressesByLookupTableAddress:{}};
  f.rpc.simulate=async tx=>{
- const fee=isBuy?feeFor(input.amount):100n,account=tokenInfo(NATIVE_MINT,FEE_RECIPIENT,fee);
+ const fee=isBuy?feeFor(input.amount):250n,account=tokenInfo(NATIVE_MINT,FEE_RECIPIENT,fee);
  const message=VersionedTransaction.deserialize(Buffer.from(tx,'base64')).message;
  const index=message.compiledInstructions.findIndex(i=>message.staticAccountKeys[i.programIdIndex].equals(JUPITER_PROGRAM));
  const event=Buffer.alloc(132);Buffer.from('e445a52e51cb9a1d982f4eebc0606e6a','hex').copy(event);event.writeUInt32LE(1,16);src.toBuffer().copy(event,20);event.writeBigUInt64LE(isBuy?input.amount-fee:input.amount,52);dst.toBuffer().copy(event,60);event.writeBigUInt64LE(isBuy?output:100101n,92);addresses[11].toBuffer().copy(event,100);
@@ -22,16 +22,44 @@ async function sample(graduated=false,action='buy',existingWsol=false){
  return {...f,input,state,route,body:{...action==='buy'?buy:sell,simulate:true},fetcher:async()=>new Response(JSON.stringify(route))};
 }
 for(const graduated of [false,true])for(const action of ['buy','sell'])test(`Jupiter ${graduated?'AMM':'curve'} ${action} builds a simulated fee-bearing unsigned transaction`,async()=>{
- const f=await sample(graduated,action);const r=await jupiterTrade(f.body,{},true,()=>f.rpc,f.fetcher);
- assert.equal(r.serviceFeeBps,10);assert.equal(r.feeRecipient,FEE_RECIPIENT.toBase58());assert.equal(r.feeAsset,'WSOL');assert.equal(r.simulation.status,'passed');assert.equal(r.submitted,false);assert.equal(r.feeAccountSetupRequired,true);assert.ok(BigInt(r.feeAccountSetupRentLamports)>0n);
+ const f=await sample(graduated,action);f.body.maxServiceFeeBps=25;const r=await jupiterTrade(f.body,{},true,()=>f.rpc,f.fetcher);
+ assert.equal(r.serviceFeeBps,25);assert.equal(r.feeRecipient,FEE_RECIPIENT.toBase58());assert.equal(r.feeAsset,'WSOL');assert.equal(r.simulation.status,'passed');assert.equal(r.submitted,false);assert.equal(r.feeAccountSetupRequired,true);assert.ok(BigInt(r.feeAccountSetupRentLamports)>0n);
  await inspectPublicBuild(r,f.body,{});const tx=VersionedTransaction.deserialize(Buffer.from(r.transaction,'base64'));assert.equal(tx.message.header.numRequiredSignatures,1);assert.ok(tx.signatures.every(s=>s.every(b=>b===0)));
- const swap=tx.message.compiledInstructions.find(i=>tx.message.staticAccountKeys[i.programIdIndex].equals(JUPITER_PROGRAM));assert.equal(Buffer.from(swap.data).readUInt16LE(26),10);if(!graduated&&action==='buy')assert.equal(swap.data[35],0);
+ const swap=tx.message.compiledInstructions.find(i=>tx.message.staticAccountKeys[i.programIdIndex].equals(JUPITER_PROGRAM));assert.equal(Buffer.from(swap.data).readUInt16LE(26),25);if(!graduated&&action==='buy')assert.equal(swap.data[35],0);
 });
 test('Jupiter rejects fee changes, foreign signers, redirected outputs, extra routes and weakened bounds',async()=>{
  const f=await sample();
  const dataChange=(r,offset,value)=>{const d=Buffer.from(r.swapInstruction.data,'base64');d[offset]=value;r.swapInstruction.data=d.toString('base64');};
  const attacks=[r=>dataChange(r,26,0),r=>dataChange(r,28,1),r=>dataChange(r,34,194),r=>dataChange(r,36,1),r=>dataChange(r,24,200),r=>dataChange(r,8,0),r=>dataChange(r,30,2),r=>{r.swapInstruction.accounts[10].pubkey=OTHER.toBase58();},r=>{r.swapInstruction.accounts[2].pubkey=OTHER.toBase58();},r=>{r.swapInstruction.accounts[13].isSigner=true;},r=>{r.routePlan[0].swapInfo.ammKey=OTHER.toBase58();},r=>{r.routePlan.push(r.routePlan[0]);},r=>{r.otherAmountThreshold='1';},r=>{r.tipInstruction={};},r=>{r.otherInstructions=[{}];}];
  for(const attack of attacks){const route=structuredClone(f.route);attack(route);assert.throws(()=>auditRoute(route,f.input,f.state),e=>e.code==='ROUTE_REJECTED');}
+});
+
+test('upstream requests use 25 bps and stale 10-bps routes cannot be returned',async()=>{
+ const f=await sample();
+ const fetcher=async url=>{assert.equal(new URL(url).searchParams.get('platformFeeBps'),'25');return f.fetcher();};
+ await jupiterTrade({...f.body,maxServiceFeeBps:25},{},false,()=>f.rpc,fetcher);
+ const data=Buffer.from(f.route.swapInstruction.data,'base64');data.writeUInt16LE(10,26);f.route.swapInstruction.data=data.toString('base64');
+ await assert.rejects(()=>jupiterTrade(f.body,{},false,()=>f.rpc,fetcher),e=>e.code==='ROUTE_REJECTED');
+});
+
+test('fee and router accounts share the pricing snapshot, removing a separate RPC round trip',async()=>{
+ for(const graduated of [false,true]){
+  const f=await sample(graduated),reads=[],original=f.rpc.accounts;
+  f.rpc.accounts=async keys=>{reads.push(keys.map(k=>k.toBase58()));return original(keys);};
+  await jupiterTrade(f.body,{},true,()=>f.rpc,f.fetcher);
+  assert.equal(reads.length,3); // Discovery, pricing/setup snapshot, final stage recheck.
+  for(const key of [FEE_ATA,JUPITER_PROGRAM,USER,f.input.mint])assert.ok(reads[1].includes(key.toBase58()));
+ }
+});
+
+test('client inspection rejects a lower fee ceiling and misleading output amounts',async()=>{
+ const f=await sample(),r=await jupiterTrade(f.body,{},true,()=>f.rpc,f.fetcher);
+ await assert.rejects(()=>inspectPublicBuild(r,{...f.body,maxServiceFeeBps:10},{}),e=>e.code==='FEE_LIMIT_EXCEEDED');
+ for(const field of ['expectedOut','minOut'])await assert.rejects(()=>inspectPublicBuild({...r,[field]:'999999999'},f.body,{}),/output bounds/);
+ const tx=VersionedTransaction.deserialize(Buffer.from(r.transaction,'base64'));
+ const swap=tx.message.compiledInstructions.find(ix=>tx.message.staticAccountKeys[ix.programIdIndex].equals(JUPITER_PROGRAM));
+ const data=Buffer.from(swap.data);data.writeUInt16LE(10,26);swap.data=data;
+ await assert.rejects(()=>inspectPublicBuild({...r,transaction:Buffer.from(tx.serialize()).toString('base64')},f.body,{}),/fee or route/);
 });
 test('Jupiter ignores upstream setup transfers and preserves existing WSOL',async()=>{
  const f=await sample(true,'buy',true);f.route.setupInstructions=[{programId:SystemProgram.programId.toBase58(),data:'unexpected transfer'}];
@@ -58,9 +86,9 @@ test('Jupiter fetch errors never return upstream URLs or credentials',async()=>{
 test('unrelated recipient deposits do not contaminate the simulated trade fee',async()=>{
  const f=await sample(),original=f.rpc.simulate;
  f.rpc.simulate=async(...args)=>{const r=await original(...args),a=r.accounts[0],data=Buffer.from(a.data[0],'base64');data.writeBigUInt64LE(5000000n,64);a.data[0]=data.toString('base64');a.lamports=6488440;return r;};
- const r=await jupiterTrade(f.body,{},true,()=>f.rpc,f.fetcher);assert.equal(r.simulation.serviceFeeLamports,'10000');
+ const r=await jupiterTrade(f.body,{},true,()=>f.rpc,f.fetcher);assert.equal(r.simulation.serviceFeeLamports,'25000');
 });
-test('sell simulation verifies 0.1% of the actual swap event output',async()=>{
+test('sell simulation verifies 0.25% of the actual swap event output',async()=>{
  const f=await sample(false,'sell'),original=f.rpc.simulate;
  f.rpc.simulate=async(...args)=>{const r=await original(...args);r.innerInstructions[0].instructions[1].parsed.info.amount='99';return r;};
  await assert.rejects(()=>jupiterTrade(f.body,{},true,()=>f.rpc,f.fetcher),e=>e.code==='ROUTE_REJECTED');

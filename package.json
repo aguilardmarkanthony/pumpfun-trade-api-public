@@ -1,9 +1,9 @@
 {
   "name": "pump-trade-router",
-  "version": "0.2.0-beta",
+  "version": "0.3.0-beta",
   "private": true,
   "license": "MIT",
-  "description": "Standalone Pump/PumpSwap unsigned trade API with automatic routing and a transparent 0.1% fee.",
+  "description": "Standalone Pump/PumpSwap unsigned trade API with automatic routing and a transparent 0.25% fee.",
   "repository": "github:apilabph/pumpfun-trade-api-public",
   "type": "module",
   "engines": {

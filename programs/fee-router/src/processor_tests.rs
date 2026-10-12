@@ -269,7 +269,7 @@ fn accounting_and_attack_cases_with_mocked_cpi() {
                 } else {
                     token_balance(&accounts[5], &RECIPIENT).unwrap()
                 };
-                assert_eq!(after - before, 750_001); // actual 0.750001999 SOL, NOT the quoted 1 SOL
+                assert_eq!(after - before, 1_875_004); // actual 0.750001999 SOL, NOT the quoted 1 SOL
                 assert_eq!(
                     *calls.lock().unwrap(),
                     vec![

@@ -1,5 +1,7 @@
 # What affects transaction speed
 
+Release 0.3.0-beta combines fee-account/router reads with the confirmed pricing snapshot, saving one sequential RPC request per quote/build. No simulation or stage check is skipped. Four local real-protocol builds used seven RPC calls each and took 434-713 ms; [recorded samples](verification-0.3.0-local.json). These measurements are not transaction confirmation times, a sustained benchmark or a guarantee for other regions. An earlier attempt encountered upstream slot lag and failed closed.
+
 The customer's internet connection matters, but it is only one part of the path:
 
 `client -> this API -> RPC + Jupiter -> unsigned transaction -> customer signs -> submission RPC -> validators -> confirmation`
@@ -24,6 +26,6 @@ Four hosted unsigned simulations on October 13, 2026 took 1,502 ms (curve buy), 
 
 Use a healthy RPC with low latency from the machine running the bot. Build close to signing time, honor rate limits, and track the returned blockhash expiry. When rebroadcasting, resend the same signed bytes while they remain valid; creating a new signed order before resolving the first one's status can cause a duplicate trade. [Solana retry guidance](https://solana.com/developers/cookbook/transactions/retry).
 
-The `priorityFee` input is a maximum budget in lamports and defaults to zero. It is separate from our 0.1% service fee. A priority fee can improve inclusion priority during congestion, but does not guarantee a successful or faster trade. The builder uses a 400,000 compute-unit limit and converts that budget into a bounded compute-unit price. [Solana fee documentation](https://solana.com/docs/core/fees).
+The `priorityFee` input is a maximum budget in lamports and defaults to zero. It is separate from our 0.25% service fee. A priority fee can improve inclusion priority during congestion, but does not guarantee a successful or faster trade. The builder uses a 400,000 compute-unit limit and converts that budget into a bounded compute-unit price. [Solana fee documentation](https://solana.com/docs/core/fees).
 
 Slippage is a price tolerance, not a network-speed setting. Raising it can allow a worse execution price. Keep simulation enabled and rebuild after a confirmed stage change instead of repeatedly sending a stale route.

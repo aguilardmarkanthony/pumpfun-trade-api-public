@@ -12,9 +12,20 @@ Give the API a token mint, your public wallet address and an amount. It checks t
 
 - Detects curve versus graduated tokens from chain state and checks again before returning a build.
 - Restricts trades to one verified Pump or canonical PumpSwap market.
-- Includes a transparent **0.1% service fee** in the same transaction as the trade.
+- Includes a transparent **0.25% service fee** in the same transaction as the trade.
 - Simulates every build, verifies the simulated fee transfer and refuses unsupported or changed routes.
 - Preserves existing wrapped-SOL accounts. Never asks for private keys.
+
+## Why use this API?
+
+Built for wallet and bot developers who want to review a trade before signing:
+
+- **A readable trade response:** selected market, minimum received, simulated fee, setup rent, signer and expiry alongside the transaction.
+- **A fee ceiling you control:** send `maxServiceFeeBps: 25` to reject a service charge above 0.25%. A lower limit returns an error before any upstream work.
+- **Checks you can inspect:** public source, tests and a JavaScript example that checks the encoded fee, amounts, slippage and recipient locally.
+- **Fewer network calls:** fee accounts and pricing share one confirmed account read. Every build still runs simulation and rechecks the token's stage.
+
+The 0.25% service fee matches PumpApi's published trading rate and is half PumpPortal Local's published 0.5%. Both also offer local signing and automatic routing. See the [documented comparison and limitations](docs/COMPARISON.md); we do not claim to be the fastest or support every market.
 
 Migration, price changes, blockhash expiry and network conditions can still cause a transaction to fail. If the venue changes, rebuild with `pool: "auto"`; an already signed transaction cannot switch venues by itself.
 
@@ -25,7 +36,7 @@ Public endpoint: **https://pump-trade-router.apilabph.workers.dev**. No API key 
 ```sh
 curl https://pump-trade-router.apilabph.workers.dev/api/quote \
   -H "Content-Type: application/json" \
-  --data '{"publicKey":"YOUR_PUBLIC_WALLET","mint":"TOKEN_MINT","action":"buy","amount":"0.01","pool":"auto","slippageBps":100}'
+  --data '{"publicKey":"YOUR_PUBLIC_WALLET","mint":"TOKEN_MINT","action":"buy","amount":"0.01","pool":"auto","slippageBps":100,"maxServiceFeeBps":25}'
 ```
 
 Replace both addresses. On Windows PowerShell, use `curl.exe` and put the command on one line. A quote does not trade or collect a fee.
@@ -36,9 +47,11 @@ Change `/api/quote` to `/api/trade/local` to receive an unsigned base64 transact
 
 ## Trading costs
 
-Successful trades include a **0.1% service fee**, paid in wrapped SOL: included in the requested SOL budget for buys, or deducted from actual SOL proceeds for sells. Network fees, protocol fees and account rent are separate.
+Successful trades include a **0.25% service fee**, paid in wrapped SOL: included in the requested SOL budget for buys, or deducted from actual SOL proceeds for sells. Network fees, protocol fees and account rent are separate.
 
 If the service's receiving account is missing, the first trader pays its setup rent; the build reports this separately before signing. See [fee details, examples and the recipient address](docs/FEES.md).
+
+**Upgrading from 0.2.0-beta?** The service fee changed from 0.1% to 0.25% in 0.3.0-beta. Older sample clients reject the new rate. Review [the release changes](CHANGELOG.md) before updating your integration.
 
 ## Run it yourself
 

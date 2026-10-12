@@ -2,6 +2,8 @@
 
 **Historical review of the experimental custom Rust router.** The default Jupiter service has its own [current review](REVIEW.md) and does not require the funding or deployment steps described below.
 
+The historical record below used 10 bps. Release 0.3.0-beta changes this undeployed program to 25 bps, with updated host and VM expectations; see the current review for new verification. Historical CI runs are not evidence for the changed binary.
+
 Scope: the public API, exact-fee CPI wrapper, routing checks, fee disclosure, examples, dependency configuration and public-release contents. This is an implementation review, not an independent security audit.
 
 ## Findings addressed

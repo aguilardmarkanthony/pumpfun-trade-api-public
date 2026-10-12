@@ -1,14 +1,14 @@
 # How the trading fee works
 
-The default Jupiter mode includes a fixed **10 basis points (0.1%)** platform fee. The recipient is `54pRN3VR97d6ELqu7uBeB5eu8nTKPnjPp2q2nJhb7CRv`. Its associated wrapped-SOL account is `Qw1PedkKHGm885bGJvcZNF56yCzDhNjJNUR8eD9BvWz`.
+The default Jupiter mode includes a fixed **25 basis points (0.25%)** platform fee. The recipient is `54pRN3VR97d6ELqu7uBeB5eu8nTKPnjPp2q2nJhb7CRv`. Its associated wrapped-SOL account is `Qw1PedkKHGm885bGJvcZNF56yCzDhNjJNUR8eD9BvWz`.
 
 ## Buys
 
-The fee is included in the requested SOL budget. For `amount: "1"`, the fee is 0.001 SOL and 0.999 SOL is available to the swap, including the protocol's own trading costs. Network fees and account rent are additional. Partial curve fills are disabled so an incomplete fill cannot be charged against the larger requested amount.
+The fee is included in the requested SOL budget. For `amount: "1"`, the fee is 0.0025 SOL and 0.9975 SOL is available to the swap, including the protocol's own trading costs. Network fees and account rent are additional. Partial curve fills are disabled so an incomplete fill cannot be charged against the larger requested amount.
 
 ## Sells
 
-The fee is calculated on actual SOL proceeds after protocol trading fees, then deducted from those proceeds. If the swap produces 1 SOL before our fee, the service receives 0.001 WSOL and the trader receives 0.999 SOL/WSOL. Integer fees round down; a fee under one lamport is zero.
+The fee is calculated on actual SOL proceeds after protocol trading fees, then deducted from those proceeds. If the swap produces 1 SOL before our fee, the service receives 0.0025 WSOL and the trader receives 0.9975 SOL/WSOL. Integer fees round down; a fee under one lamport is zero.
 
 For both directions, Jupiter's deployed program performs the swap and fee transfer atomically. The API checks the encoded fee rate and recipient, then checks the exact fee transfer and swap event in unsigned simulation. Simulation describes a possible execution, not a receipt for a paid fee. Quotes, builds, downloads and failed transactions do not earn commissions.
 
@@ -18,7 +18,7 @@ The operator does **not** need to deposit 0.005 SOL or manually approve fee coll
 
 The response discloses `feeAccountSetupRequired`, `feeAccountSetupPaidBy: "trader"` and, on builds, `feeAccountSetupRentLamports`. A read-only mainnet simulation on October 13, 2026 measured **1,488,440 lamports (0.00148844 SOL)**. Rent is queried through the actual simulation and can change. Clients should show the extra cost before signing, especially for small trades. Once the account exists, this creation charge is zero. If its owner closes it, a later trader may need to create it again.
 
-That rent funds an account controlled by the fee recipient; it is separate from the 0.1% commission. User token accounts and protocol accounts can require additional rent, which is not included in that one field. The operator can choose to create the receiving account beforehand to spare the first trader this cost, but that is optional.
+That rent funds an account controlled by the fee recipient; it is separate from the 0.25% commission. User token accounts and protocol accounts can require additional rent, which is not included in that one field. The operator can choose to create the receiving account beforehand to spare the first trader this cost, but that is optional.
 
 ## Access and control
 

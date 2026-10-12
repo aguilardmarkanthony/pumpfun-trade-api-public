@@ -1,6 +1,6 @@
 import {Connection,PublicKey,VersionedTransaction} from '@solana/web3.js';
 import {NATIVE_MINT,TOKEN_PROGRAM_ID,TOKEN_2022_PROGRAM_ID,getAssociatedTokenAddressSync} from '@solana/spl-token';
-import {FEE_RECIPIENT,FEE_ATA} from '../src/fees.js';
+import {FEE_RECIPIENT,FEE_ATA,FEE_BPS} from '../src/fees.js';
 import {JUPITER_PROGRAM} from '../src/jupiter.js';
 import {tradeInput} from '../src/input.js';
 
@@ -12,11 +12,13 @@ async function request(settings,path,order){
   if(!response.ok) throw new Error(`${result.error?.code??response.status}: ${result.error?.message??'Request failed'}`);
   return result;
 }
-export const quoteTrade=(settings,order)=>request(settings,'/api/quote',order);
+const withFeeLimit=order=>({...order,maxServiceFeeBps:order.maxServiceFeeBps??FEE_BPS});
+export const quoteTrade=(settings,order)=>request(settings,'/api/quote',withFeeLimit(order));
 
 export function inspectBuild(response,order,expectedRouterProgramId){
+  tradeInput(order); // Enforce the caller's fee ceiling before returning any bytes.
   if(!expectedRouterProgramId) throw new Error('Set the verified fee router program ID before building.');
-  if(response.unsigned!==true||response.submitted!==false||response.serviceFeeBps!==10||response.feeRecipient!==FEE_RECIPIENT.toBase58()) throw new Error('Unexpected transaction or fee policy.');
+  if(response.unsigned!==true||response.submitted!==false||response.serviceFeeBps!==FEE_BPS||response.feeRecipient!==FEE_RECIPIENT.toBase58()) throw new Error('Unexpected transaction or fee policy.');
   const bytes=Buffer.from(response.transaction,'base64');
   if(bytes.length>1232) throw new Error('Oversized transaction.');
   const transaction=VersionedTransaction.deserialize(bytes),message=transaction.message;
@@ -33,6 +35,7 @@ export function inspectBuild(response,order,expectedRouterProgramId){
 }
 
 export async function buildTrade(settings,order){
+  order=withFeeLimit(order);
   const response=await request(settings,'/api/trade/local',{...order,simulate:true});
   if(response.simulation?.status!=='passed') throw new Error('A successful simulation is required by this example.');
   const transaction=settings.expectedRouterProgramId
@@ -43,7 +46,7 @@ export async function buildTrade(settings,order){
 
 // Basic client checks. These do not replace a wallet's full instruction review.
 export async function inspectPublicBuild(response,order,connection){
-  if(response.unsigned!==true||response.submitted!==false||response.serviceFeeBps!==10||response.feeRecipient!==FEE_RECIPIENT.toBase58()||response.feeAccount!==FEE_ATA.toBase58()||response.feeRouterProgramId!==JUPITER_PROGRAM.toBase58())throw new Error('Unexpected fee policy.');
+  if(response.unsigned!==true||response.submitted!==false||response.serviceFeeBps!==FEE_BPS||response.feeRecipient!==FEE_RECIPIENT.toBase58()||response.feeAccount!==FEE_ATA.toBase58()||response.feeRouterProgramId!==JUPITER_PROGRAM.toBase58())throw new Error('Unexpected fee policy.');
   const bytes=Buffer.from(response.transaction,'base64');if(bytes.length>1232)throw new Error('Oversized transaction.');
   const transaction=VersionedTransaction.deserialize(bytes),message=transaction.message,input=tradeInput(order);
   if(message.header.numRequiredSignatures!==1||!message.staticAccountKeys[0].equals(input.user)||transaction.signatures.some(s=>s.some(b=>b!==0))||message.addressTableLookups.length>4)throw new Error('Unexpected signer or signature.');
@@ -54,7 +57,9 @@ export async function inspectPublicBuild(response,order,connection){
   const ix=swaps[0],data=Buffer.from(ix.data),k=i=>keys.get(ix.accountKeyIndexes[i]);
   const buy=input.action==='buy',variant=data[34],variants=buy?[187,191,193]:[153,192,194];
   const fields=[187,191].includes(variant)?2:1;
-  if(!variants.includes(variant)||data.length!==39+fields||data.subarray(0,8).toString('hex')!=='bb64facc31c4af14'||data.readBigUInt64LE(8)!==input.amount||data.readUInt16LE(24)!==input.slippageBps||data.readUInt16LE(26)!==10||data.readUInt16LE(28)!==0||data.readUInt32LE(30)!==1||data.subarray(35,35+fields).some(x=>x!==0)||data.readUInt16LE(35+fields)!==10000||data[37+fields]!==0||data[38+fields]!==1)throw new Error('Unexpected amount, slippage, fee or route.');
+  if(!variants.includes(variant)||data.length!==39+fields||data.subarray(0,8).toString('hex')!=='bb64facc31c4af14'||data.readBigUInt64LE(8)!==input.amount||data.readUInt16LE(24)!==input.slippageBps||data.readUInt16LE(26)!==FEE_BPS||data.readUInt16LE(28)!==0||data.readUInt32LE(30)!==1||data.subarray(35,35+fields).some(x=>x!==0)||data.readUInt16LE(35+fields)!==10000||data[37+fields]!==0||data[38+fields]!==1)throw new Error('Unexpected amount, slippage, fee or route.');
+  const output=data.readBigUInt64LE(16),minimum=(output*BigInt(10000-input.slippageBps)+9999n)/10000n;
+  if(output===0n||minimum===0n||response.expectedOut!==output.toString()||response.minOut!==minimum.toString())throw new Error('Response output bounds disagree with the transaction.');
   const tokenProgram=k(buy?6:5);if(![TOKEN_PROGRAM_ID,TOKEN_2022_PROGRAM_ID].some(p=>p.equals(tokenProgram)))throw new Error('Unexpected token program.');
   const sourceMint=buy?NATIVE_MINT:input.mint,destMint=buy?input.mint:NATIVE_MINT;
   if(!k(0).equals(input.user)||!k(3).equals(sourceMint)||!k(4).equals(destMint)||!k(10).equals(FEE_ATA)||!k(1).equals(getAssociatedTokenAddressSync(sourceMint,input.user,false,buy?TOKEN_PROGRAM_ID:tokenProgram))||!k(2).equals(getAssociatedTokenAddressSync(destMint,input.user,false,buy?tokenProgram:TOKEN_PROGRAM_ID)))throw new Error('Unexpected trader, mint or fee destination.');

@@ -14,7 +14,7 @@ import {loadState,quoteState,instructions} from '../../src/protocol.js';
 const directory=process.env.SBF_ARTIFACT_DIR;
 if(!directory)throw new Error('Set SBF_ARTIFACT_DIR to the compiled router and mock-market artifacts.');
 const routerBytes=readFileSync(`${directory}/pump_trade_fee_router.so`),mockBytes=readFileSync(`${directory}/mock_market.so`);
-const GROSS=750001999n,FEE=750001n;
+const GROSS=750001999n,FEE=1875004n;
 
 async function setup({graduated=false,action='buy',cashback=false,attack}={}){
   const f=await fixture({graduated,cashback,existingWsol:true});

@@ -46,7 +46,7 @@ export function auditRoute(route,input,state){
   const data=Buffer.from(raw.data,'base64');
   const variants=state.venue==='pump'?(buy?[187,191]:[153,192]):(buy?[193]:[194]);
   const variant=data[34],fields=[187,191].includes(variant)?2:1;
-  if(!variants.includes(variant)||data.length!==39+fields||!data.subarray(0,8).equals(DISCRIMINATOR)||data.readBigUInt64LE(8)!==input.amount||data.readBigUInt64LE(16)!==output||data.readUInt16LE(24)!==input.slippageBps||data.readUInt16LE(26)!==10||data.readUInt16LE(28)!==0||data.readUInt32LE(30)!==1)reject();
+  if(!variants.includes(variant)||data.length!==39+fields||!data.subarray(0,8).equals(DISCRIMINATOR)||data.readBigUInt64LE(8)!==input.amount||data.readBigUInt64LE(16)!==output||data.readUInt16LE(24)!==input.slippageBps||data.readUInt16LE(26)!==FEE_BPS||data.readUInt16LE(28)!==0||data.readUInt32LE(30)!==1)reject();
   const partialOffset=variant===191?35:variant===187?36:null;
   for(let n=35;n<35+fields;n++)if(data[n]>(n===partialOffset?1:0))reject();
   if(data.readUInt16LE(35+fields)!==10000||data[37+fields]!==0||data[38+fields]!==1)reject();
@@ -91,7 +91,7 @@ export function composeRoute(audited,input,state,wsolExists,feeExists,blockhash,
   const tx=new VersionedTransaction(message);let bytes;
   try{bytes=tx.serialize();}catch{throw new ApiError(422,'TRANSACTION_TOO_LARGE','Route exceeds the supported transaction size.');}
   if(bytes.length>1232||tx.signatures.some(s=>s.some(b=>b!==0)))reject();
-  return {transaction:Buffer.from(bytes).toString('base64'),message:Buffer.from(message.serialize()).toString('base64'),transactionBytes:bytes.length,computeUnitLimit:COMPUTE_UNITS,priorityFeeLamports:String((microLamports*BigInt(COMPUTE_UNITS)+999999n)/1000000n),instructionSummary:[{programId:JUPITER_PROGRAM.toBase58(),operation:'pump_trade_with_10bps_fee',recipient:FEE_RECIPIENT.toBase58(),feeAsset:'WSOL'}]};
+  return {transaction:Buffer.from(bytes).toString('base64'),message:Buffer.from(message.serialize()).toString('base64'),transactionBytes:bytes.length,computeUnitLimit:COMPUTE_UNITS,priorityFeeLamports:String((microLamports*BigInt(COMPUTE_UNITS)+999999n)/1000000n),instructionSummary:[{programId:JUPITER_PROGRAM.toBase58(),operation:`pump_trade_with_${FEE_BPS}bps_fee`,recipient:FEE_RECIPIENT.toBase58(),feeAsset:'WSOL'}]};
 }
 
 let active=0;
@@ -144,17 +144,17 @@ export async function jupiterTrade(body,env,build,rpcFactory=e=>new Rpc(e),fetch
   if(active>=8)throw new ApiError(503,'BUSY','Build capacity is busy; retry later.');
   active++;
   try{
-    const rpc=rpcFactory(env),state=await loadState(rpc,input);
-    quoteState(state,input); // Preserve liquidity, supported-state and graduation-boundary guards.
     const wsol=getAssociatedTokenAddressSync(NATIVE_MINT,input.user);
-    const [wsolInfo,feeInfo,programInfo]=await rpc.accounts([wsol,FEE_ATA,JUPITER_PROGRAM]);
+    const rpc=rpcFactory(env),state=await loadState(rpc,input,null,[wsol,FEE_ATA,JUPITER_PROGRAM]);
+    quoteState(state,input); // Preserve liquidity, supported-state and graduation-boundary guards.
+    const [wsolInfo,feeInfo,programInfo]=state.additionalAccounts;
     if(!programInfo?.executable)throw new ApiError(503,'ROUTER_UNAVAILABLE','The router program is unavailable.');
     const userWsol=tokenAccount(wsol,wsolInfo,NATIVE_MINT,input.user,TOKEN_PROGRAM_ID,true);
     const recipient=tokenAccount(FEE_ATA,feeInfo,NATIVE_MINT,FEE_RECIPIENT,TOKEN_PROGRAM_ID,true);
     if((userWsol&&!userWsol.isNative)||(recipient&&!recipient.isNative))reject();
     const route=await fetchRoute(input,state,env,fetcher),audited=auditRoute(route,input,state);
     const estimatedFee=input.action==='buy'?feeFor(input.amount):feeFor(uint(route.routePlan[0].swapInfo.outAmount));
-    const response={venue:state.venue,pool:state.venue,poolAddress:(state.venue==='pump'?state.curveKey:state.poolKey).toBase58(),mint:input.mint.toBase58(),action:input.action,tradeMode:'exact_input',amountIn:input.amount.toString(),inputUnit:input.action==='buy'?'lamports':'raw_token_units',quotedOut:audited.output.toString(),expectedOut:audited.output.toString(),minOut:audited.min.toString(),outputUnit:input.action==='buy'?'raw_token_units':'lamports',tokenDecimals:state.mintAccount.decimals,slippageBps:input.slippageBps,contextSlot:state.slot,protocolFeesIncluded:true,quoteIsExecutionGuarantee:false,existingWsolAccountPreserved:!!wsolInfo,outputAsset:input.action==='buy'?'token':wsolInfo?'WSOL':'SOL',serviceFeeBps:10,feeRecipient:FEE_RECIPIENT.toBase58(),feeAccount:FEE_ATA.toBase58(),feeAsset:'WSOL',feeBasis:input.action==='buy'?'requested_SOL_input_including_service_fee':'actual_SOL_output_before_service_fee',feeIncludedInInput:input.action==='buy',outputIncludesServiceFee:true,estimatedServiceFeeLamports:estimatedFee.toString(),feeEstimateIsFinal:false,feeAccountSetupRequired:!feeInfo,feeAccountSetupPaidBy:'trader',feeRouterProgramId:JUPITER_PROGRAM.toBase58(),routingProvider:'Jupiter Metis',accountRentIncluded:false};
+    const response={venue:state.venue,pool:state.venue,poolAddress:(state.venue==='pump'?state.curveKey:state.poolKey).toBase58(),mint:input.mint.toBase58(),action:input.action,tradeMode:'exact_input',amountIn:input.amount.toString(),inputUnit:input.action==='buy'?'lamports':'raw_token_units',quotedOut:audited.output.toString(),expectedOut:audited.output.toString(),minOut:audited.min.toString(),outputUnit:input.action==='buy'?'raw_token_units':'lamports',tokenDecimals:state.mintAccount.decimals,slippageBps:input.slippageBps,contextSlot:state.slot,protocolFeesIncluded:true,quoteIsExecutionGuarantee:false,existingWsolAccountPreserved:!!wsolInfo,outputAsset:input.action==='buy'?'token':wsolInfo?'WSOL':'SOL',serviceFeeBps:FEE_BPS,feeRecipient:FEE_RECIPIENT.toBase58(),feeAccount:FEE_ATA.toBase58(),feeAsset:'WSOL',feeBasis:input.action==='buy'?'requested_SOL_input_including_service_fee':'actual_SOL_output_before_service_fee',feeIncludedInInput:input.action==='buy',outputIncludesServiceFee:true,estimatedServiceFeeLamports:estimatedFee.toString(),feeEstimateIsFinal:false,feeAccountSetupRequired:!feeInfo,feeAccountSetupPaidBy:'trader',feeRouterProgramId:JUPITER_PROGRAM.toBase58(),routingProvider:'Jupiter Metis',accountRentIncluded:false};
     if(!build)return {...response,simulation:{status:'not_run'}};
     if(!state.walletInfo)throw new ApiError(422,'WALLET_NOT_FUNDED','Wallet needs SOL for network fees and account rent.');
     if(input.action==='sell'&&(!state.userBase||state.userBase.amount<input.amount))throw new ApiError(422,'INSUFFICIENT_TOKEN_BALANCE','Wallet token account has insufficient raw units.');

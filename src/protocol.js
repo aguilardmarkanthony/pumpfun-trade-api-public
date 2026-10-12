@@ -33,7 +33,7 @@ export function chooseRoute(curve,poolChoice,poolExists) {
   if(!curve.quoteMint.equals(PublicKey.default)&&!curve.quoteMint.equals(NATIVE_MINT))throw new ApiError(422,'UNSUPPORTED_QUOTE_MINT','Only SOL-paired tokens are supported.');
   return route;
 }
-export async function loadState(rpc,input,routerProgram=null) {
+export async function loadState(rpc,input,routerProgram=null,additionalKeys=[]) {
   const {mint,user}=input,curveKey=bondingCurvePda(mint),poolKey=canonicalPumpPoolPda(mint);
   const [mintInfo,curveInfo,poolInfo]=await rpc.accounts([mint,curveKey,poolKey]);
   if(!mintInfo)throw new ApiError(404,'MINT_NOT_FOUND','Mint account was not found.');
@@ -53,6 +53,8 @@ export async function loadState(rpc,input,routerProgram=null) {
   const volumeKey=sdk.pump.userVolumeAccumulatorPda(user);
   const extraIndex=keys.length;
   if(routerProgram)keys.push(routerProgram,FEE_RECIPIENT,...(venue==='pump'?[volumeKey]:[]));
+  const additionalIndex=keys.length;
+  keys.push(...additionalKeys);
   const accounts=await rpc.accounts(keys),[currentMintInfo,currentCurveInfo,userBaseAccountInfo,walletInfo]=accounts;
   if(routerProgram&&!accounts[extraIndex]?.executable)throw new ApiError(503,'FEE_ROUTER_NOT_DEPLOYED','Configured fee router is not an executable on-chain program.');
   if(routerProgram&&venue==='pump'){
@@ -69,7 +71,7 @@ export async function loadState(rpc,input,routerProgram=null) {
   if(walletInfo&&(!walletInfo.owner.equals(SystemProgram.programId)||walletInfo.executable))throw new ApiError(422,'INVALID_WALLET','The wallet must be a normal system account.');
   const volumeInfo=routerProgram&&venue==='pump'?accounts[extraIndex+2]:undefined;
   if(volumeInfo&&(!volumeInfo.owner.equals(PUMP_PROGRAM_ID)||volumeInfo.executable||!volumeInfo.data.length))bad('Volume account is invalid.');
-  const common={venue,mint,user,tokenProgram,mintAccount,curve:currentCurve,curveKey,userBaseTokenAccount,userBaseAccountInfo,userBase,walletInfo,slot:rpc.slot,routerProgram,volumeInfo};
+  const common={venue,mint,user,tokenProgram,mintAccount,curve:currentCurve,curveKey,userBaseTokenAccount,userBaseAccountInfo,userBase,walletInfo,slot:rpc.slot,routerProgram,volumeInfo,additionalAccounts:accounts.slice(additionalIndex)};
   if(venue==='pump') {
     const global=PUMP_SDK.decodeGlobal(owned(accounts[4],PUMP_PROGRAM_ID));
     const feeConfig=PUMP_SDK.decodeFeeConfig(owned(accounts[5],PUMP_FEE_PROGRAM_ID));

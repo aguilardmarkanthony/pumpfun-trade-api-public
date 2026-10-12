@@ -1,5 +1,6 @@
 import {PublicKey} from '@solana/web3.js';
 import {ApiError,fail,object,integer} from './http.js';
+import {FEE_BPS} from './fees.js';
 export const U64_MAX = (1n << 64n) - 1n;
 export function publicKey(value, name = 'mint', signer = false) {
   if (typeof value !== 'string' || !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(value)) fail(`${name} must be a base58 Solana public key.`);
@@ -22,7 +23,7 @@ export function amountUnits(value, action) {
   return result;
 }
 export function tradeInput(body) {
-  object(body,['publicKey','mint','action','amount','denominatedInSol','slippage','slippageBps','priorityFee','pool','simulate']);
+  object(body,['publicKey','mint','action','amount','denominatedInSol','slippage','slippageBps','priorityFee','pool','simulate','maxServiceFeeBps']);
   if (!['buy','sell'].includes(body.action)) fail('action must be buy or sell.');
   const user = publicKey(body.publicKey,'publicKey',true), mint = publicKey(body.mint);
   if (body.denominatedInSol !== undefined && body.denominatedInSol !== (body.action === 'buy')) fail('Buy amounts are SOL; sell amounts are raw token units.');
@@ -36,7 +37,9 @@ export function tradeInput(body) {
   if (pool === 'raydium') throw new ApiError(422,'UNSUPPORTED_VENUE','This replacement supports Pump bonding curves and canonical PumpSwap pools; Raydium is not implemented.');
   if (!['auto','pump','pumpswap'].includes(pool)) fail('pool must be auto, pump or pumpswap.');
   if (body.simulate !== undefined && typeof body.simulate !== 'boolean') fail('simulate must be boolean.');
-  return {user,mint,action:body.action,amount:amountUnits(body.amount,body.action),slippageBps,pool,priorityFee:integer(body.priorityFee,'priorityFee',0,10000000,0),simulate:body.simulate??true};
+  const input={user,mint,action:body.action,amount:amountUnits(body.amount,body.action),slippageBps,pool,priorityFee:integer(body.priorityFee,'priorityFee',0,10000000,0),simulate:body.simulate??true,maxServiceFeeBps:integer(body.maxServiceFeeBps,'maxServiceFeeBps',0,10000)};
+  if(input.maxServiceFeeBps!==undefined&&FEE_BPS>input.maxServiceFeeBps)throw new ApiError(409,'FEE_LIMIT_EXCEEDED',`The service fee is ${FEE_BPS} basis points, above your maxServiceFeeBps limit. Review the fee before changing your limit.`);
+  return input;
 }
 export function minimumOut(expected, bps) {
   const min = expected * BigInt(10000-bps) / 10000n;

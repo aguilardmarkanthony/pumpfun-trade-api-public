@@ -7,7 +7,7 @@ import {fixture,ENV,buy,sell,USER} from './fixtures.js';
 for(const graduated of [false,true])for(const action of ['buy','sell'])for(const cashback of [false,true])test(`${graduated?'PumpSwap':'curve'} ${action} cashback=${cashback}: unsigned, bounded and inspectable`,async()=>{
  const f=await fixture({graduated,cashback});
  const result=await trade(action==='buy'?buy:sell,ENV,true,()=>f.rpc);
- assert.equal(result.venue,graduated?'pumpswap':'pump');assert.equal(result.serviceFeeBps,10);assert.equal(result.feeRecipient,'54pRN3VR97d6ELqu7uBeB5eu8nTKPnjPp2q2nJhb7CRv');
+ assert.equal(result.venue,graduated?'pumpswap':'pump');assert.equal(result.serviceFeeBps,25);assert.equal(result.feeRecipient,'54pRN3VR97d6ELqu7uBeB5eu8nTKPnjPp2q2nJhb7CRv');
  const tx=VersionedTransaction.deserialize(Buffer.from(result.transaction,'base64'));
  assert.equal(tx.message.header.numRequiredSignatures,1);assert.equal(tx.message.staticAccountKeys[0].toBase58(),USER.toBase58());assert.ok(tx.signatures.every(s=>s.every(b=>b===0)));assert.ok(result.transactionBytes<=1232);assert.ok(BigInt(result.minOut)>0n);
  assert.equal(result.submitted,false);assert.equal(result.lastValidBlockHeight,300);

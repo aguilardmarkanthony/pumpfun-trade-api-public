@@ -1,5 +1,19 @@
 # Review record - October 13, 2026
 
+## 0.3.0-beta review
+
+The owner requested a 25-bps (0.25%) fee. Review found hard-coded 10-bps checks in the upstream instruction audit, response, sample client and experimental Rust program. Those now agree on 25 bps; JavaScript response/audit logic uses the shared fee constant. Arithmetic tests cover rounding below one lamport and u64 maximum amounts. No fee recipient changed.
+
+Added `maxServiceFeeBps` to quotes and builds. Regression tests check both engines and trade directions, malformed limits, rejection before RPC work, HTTP 409 errors and positive acceptance at 25 bps. A higher ceiling cannot override the fee. The sample client supplies an explicit ceiling and rejects mismatches in the serialized rate. Review also found that its output amount checks were incomplete: it now compares the response's expected/minimum output with the encoded transaction.
+
+Performance review combined the fee-account/router read with the confirmed pricing snapshot. It removes one sequential RPC call; the final stage check and mandatory simulation are retained. Regression tests verify batching for both venues, and existing tests still reject bad accounts, changed stages and failed simulations.
+
+All 67 JavaScript tests, syntax/OpenAPI checks, Worker dry-run bundling, npm audit (zero vulnerabilities), Rust formatting, three Rust host tests and Clippy passed locally. Four fresh unsigned real-protocol simulations passed at 25 bps; [local results](verification-0.3.0-local.json) used seven RPC calls per build and took 434-713 ms from the development environment. One earlier four-request attempt failed with RPC minimum-context-slot errors; a fresh attempt succeeded without weakening slot validation. These are sample timings, not a latency SLA or capacity test. Hosted results and CI status are recorded in [deployment](DEPLOYMENT.md).
+
+The experimental Rust program is still undeployed. Its previous VM results below are historical; this release's compiled-program CI must pass with the new expected fee amounts. No real trade was signed or submitted.
+
+## Historical 0.2.0-beta review
+
 Scope: standalone Jupiter-based API, public access, recipient setup, fee disclosure, client examples and deployment separation. This is an implementation review, not an independent security audit.
 
 ## Findings fixed

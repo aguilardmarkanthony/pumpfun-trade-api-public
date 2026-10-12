@@ -3,10 +3,10 @@ import {NATIVE_MINT, TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync, createAsso
 import sdk from './sdk.cjs';
 import {ApiError} from './http.js';
 
-export const FEE_BPS = 10;
+export const FEE_BPS = 25;
 export const FEE_RECIPIENT = new PublicKey('54pRN3VR97d6ELqu7uBeB5eu8nTKPnjPp2q2nJhb7CRv');
 export const FEE_ATA = getAssociatedTokenAddressSync(NATIVE_MINT, FEE_RECIPIENT);
-export const feeFor = lamports => lamports / 1000n;
+export const feeFor = lamports => lamports * BigInt(FEE_BPS) / 10000n;
 
 export function routerConfig(env, required = false) {
   if (!env.FEE_ROUTER_PROGRAM_ID) {

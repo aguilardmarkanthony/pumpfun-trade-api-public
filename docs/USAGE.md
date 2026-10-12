@@ -7,15 +7,15 @@ Public mode has no signup, subscription or API key. The operator does not approv
 Send a POST request to `/api/trade/local` with `Content-Type: application/json`:
 
 ```json
-{"publicKey":"YOUR_PUBLIC_WALLET","mint":"TOKEN_MINT","action":"buy","amount":"0.01","pool":"auto","slippageBps":100,"simulate":true}
+{"publicKey":"YOUR_PUBLIC_WALLET","mint":"TOKEN_MINT","action":"buy","amount":"0.01","pool":"auto","slippageBps":100,"simulate":true,"maxServiceFeeBps":25}
 ```
 
-Use a mint address, not a ticker. This spends up to the 0.01 SOL input budget, including our 0.1% service fee, plus network fees and any necessary account rent. `slippageBps: 100` means 1%. The service requires successful unsigned simulation before returning a build.
+Use a mint address, not a ticker. This spends up to the 0.01 SOL input budget, including our 0.25% service fee, plus network fees and any necessary account rent. `slippageBps: 100` means 1%. The service requires successful unsigned simulation before returning a build.
 
 ## Sell
 
 ```json
-{"publicKey":"YOUR_PUBLIC_WALLET","mint":"TOKEN_MINT","action":"sell","amount":"1000000","pool":"auto","slippageBps":100,"simulate":true}
+{"publicKey":"YOUR_PUBLIC_WALLET","mint":"TOKEN_MINT","action":"sell","amount":"1000000","pool":"auto","slippageBps":100,"simulate":true,"maxServiceFeeBps":25}
 ```
 
 Sell amounts are raw token units. A six-decimal token has 1,000,000 units per token. Use decimal strings to avoid rounding errors. `minOut` and `expectedOut` are already net of the service fee in Jupiter mode; don't subtract it a second time.
@@ -39,7 +39,8 @@ const order = {
   action: 'buy',
   amount: '0.01',
   pool: 'auto',
-  slippageBps: 100
+  slippageBps: 100,
+  maxServiceFeeBps: 25 // Reject a service fee above 0.25%.
 };
 
 const quote = await quoteTrade(settings, order);
@@ -55,7 +56,7 @@ console.log('Unsigned transaction:', response.transaction);
 
 For a private self-hosted server only, add `apiKey: process.env.API_KEY`. The public service does not require that setting. Never place infrastructure credentials in a public browser bundle.
 
-The sample checks the signer, fee destination, encoded rate, amount, slippage and supported router instruction. It resolves lookup tables from chain. These are basic checks, not a complete independent audit of every instruction. Use a trusted endpoint and inspect the whole transaction before approving it.
+The sample sends a 25-bps fee ceiling by default and checks the signer, fee destination, encoded rate, amount, slippage and supported router instruction. It also compares the response's expected/minimum output with the encoded transaction bounds and resolves lookup tables from chain. These are basic checks, not a complete independent audit of every instruction. Use a trusted endpoint and inspect the whole transaction before approving it.
 
 ## Read the response
 
@@ -76,6 +77,7 @@ Show first-use rent before asking a user to sign. The receiving account currentl
 
 | Code | What to do |
 | --- | --- |
+| `FEE_LIMIT_EXCEEDED` | Stop and review the current service fee. Only raise your ceiling if you accept it; do not automatically retry with a higher limit. |
 | `VENUE_CHANGED` | Request a fresh build with `pool: "auto"`. |
 | `MIGRATION_PENDING` | Wait for the canonical pool to become available. |
 | `GRADUATION_BOUNDARY` | Use a smaller buy or wait for graduation. |

@@ -1,0 +1,88 @@
+{
+  "recordedAt": "2026-10-12T18:21:07.276Z",
+  "version": "0.3.0-beta",
+  "base": "local",
+  "noTransactionsSubmitted": true,
+  "results": [
+    {
+      "venue": "curve",
+      "action": "buy",
+      "status": 200,
+      "buildMilliseconds": 713,
+      "simulation": {
+        "status": "passed",
+        "contextSlot": 456143269,
+        "unitsConsumed": 87738,
+        "signatureVerification": false,
+        "serviceFeeLamports": "250"
+      },
+      "fee": 25,
+      "feeRecipient": "54pRN3VR97d6ELqu7uBeB5eu8nTKPnjPp2q2nJhb7CRv",
+      "setupRent": "1488440",
+      "transactionBytes": 767,
+      "rpcCalls": 7,
+      "unsigned": true,
+      "submitted": false
+    },
+    {
+      "venue": "curve",
+      "action": "sell",
+      "status": 200,
+      "buildMilliseconds": 434,
+      "simulation": {
+        "status": "passed",
+        "contextSlot": 456143271,
+        "unitsConsumed": 85136,
+        "signatureVerification": false,
+        "serviceFeeLamports": "69"
+      },
+      "fee": 25,
+      "feeRecipient": "54pRN3VR97d6ELqu7uBeB5eu8nTKPnjPp2q2nJhb7CRv",
+      "setupRent": "1488440",
+      "transactionBytes": 713,
+      "rpcCalls": 7,
+      "unsigned": true,
+      "submitted": false
+    },
+    {
+      "venue": "pumpswap",
+      "action": "buy",
+      "status": 200,
+      "buildMilliseconds": 458,
+      "simulation": {
+        "status": "passed",
+        "contextSlot": 456143274,
+        "unitsConsumed": 108469,
+        "signatureVerification": false,
+        "serviceFeeLamports": "250"
+      },
+      "fee": 25,
+      "feeRecipient": "54pRN3VR97d6ELqu7uBeB5eu8nTKPnjPp2q2nJhb7CRv",
+      "setupRent": "1488440",
+      "transactionBytes": 674,
+      "rpcCalls": 7,
+      "unsigned": true,
+      "submitted": false
+    },
+    {
+      "venue": "pumpswap",
+      "action": "sell",
+      "status": 200,
+      "buildMilliseconds": 513,
+      "simulation": {
+        "status": "passed",
+        "contextSlot": 456143277,
+        "unitsConsumed": 106057,
+        "signatureVerification": false,
+        "serviceFeeLamports": "15811"
+      },
+      "fee": 25,
+      "feeRecipient": "54pRN3VR97d6ELqu7uBeB5eu8nTKPnjPp2q2nJhb7CRv",
+      "setupRent": "1488440",
+      "transactionBytes": 652,
+      "rpcCalls": 7,
+      "unsigned": true,
+      "submitted": false
+    }
+  ]
+}

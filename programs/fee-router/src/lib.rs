@@ -1,4 +1,4 @@
-//! Stateless, fixed-recipient 10 bps Pump/PumpSwap CPI wrapper.
+//! Stateless, fixed-recipient 25 bps Pump/PumpSwap CPI wrapper.
 //! No custody, stored balances, admin instructions or arbitrary CPI targets.
 #![allow(deprecated)]
 use solana_program::{
@@ -57,7 +57,8 @@ fn word(bytes: &[u8], offset: usize) -> Result<u64, ProgramError> {
     ))
 }
 pub fn service_fee(gross: u64) -> u64 {
-    gross / 1000
+    // 25 / 10,000 = 1 / 400. Divide first to avoid overflow at u64::MAX.
+    gross / 400
 }
 fn token_balance(account: &AccountInfo, authority: &Pubkey) -> Result<u64, ProgramError> {
     require(account.owner == &TOKEN && !account.executable && account.key == &ata(authority))?;
@@ -286,10 +287,11 @@ mod tests {
     fn exact_integer_fee_and_no_overflow() {
         for (gross, fee) in [
             (0, 0),
-            (999, 0),
-            (1000, 1),
-            (1_000_000_000, 1_000_000),
-            (u64::MAX, u64::MAX / 1000),
+            (399, 0),
+            (400, 1),
+            (999, 2),
+            (1_000_000_000, 2_500_000),
+            (u64::MAX, 46_116_860_184_273_879),
         ] {
             assert_eq!(service_fee(gross), fee);
         }

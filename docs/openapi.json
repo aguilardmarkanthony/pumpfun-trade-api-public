@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Pump Trade Router",
-    "version": "0.2.0-beta",
-    "description": "Standalone unsigned Pump/PumpSwap trade API. Public access needs no API key. Automatic stage detection; 10 bps fee in WSOL through Jupiter Metis. First trader funds fee-account rent if missing. Builds require simulation. No execution guarantee."
+    "version": "0.3.0-beta",
+    "description": "Standalone unsigned Pump/PumpSwap trade API. Public access needs no API key. Automatic stage detection; 25 bps fee in WSOL through Jupiter Metis. First trader funds fee-account rent if missing. Builds require simulation. No execution guarantee."
   },
   "servers": [
     {
@@ -175,7 +175,8 @@
                 "action": "buy",
                 "amount": "0.01",
                 "slippageBps": 100,
-                "pool": "auto"
+                "pool": "auto",
+                "maxServiceFeeBps": 25
               }
             }
           }
@@ -341,7 +342,8 @@
                 "action": "buy",
                 "amount": "0.01",
                 "slippageBps": 100,
-                "pool": "auto"
+                "pool": "auto",
+                "maxServiceFeeBps": 25
               }
             }
           }
@@ -850,6 +852,12 @@
             ],
             "description": "Buy: SOL up to nine decimals and 100 SOL. Sell: raw integer token units. Exact strings preferred."
           },
+          "maxServiceFeeBps": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000,
+            "description": "Optional service-fee ceiling in basis points. 25 means 0.25%. Quotes and builds fail with 409 FEE_LIMIT_EXCEEDED before upstream calls if the service fee is higher. Does not cap protocol fees, network fees or rent."
+          },
           "denominatedInSol": {
             "type": "boolean"
           },
@@ -970,7 +978,7 @@
           "serviceFeeBps": {
             "type": "integer",
             "enum": [
-              10
+              25
             ]
           },
           "feeRecipient": {
@@ -1162,7 +1170,7 @@
           "serviceFeeBps": {
             "type": "integer",
             "enum": [
-              10
+              25
             ]
           },
           "feeRecipient": {
