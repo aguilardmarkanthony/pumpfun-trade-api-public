@@ -1,0 +1,31 @@
+{
+  "name": "pump-trade-router",
+  "version": "0.1.0-preview",
+  "private": true,
+  "license": "MIT",
+  "description": "Unsigned Pump/PumpSwap trade builder with an atomic 10 bps fee router. Developer preview.",
+  "repository": "github:aguilardmarkanthony/pumpfun-trade-api-public",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "check": "node scripts/check.mjs",
+    "build:check": "wrangler deploy --dry-run",
+    "dev": "wrangler dev"
+  },
+  "dependencies": {
+    "@pump-fun/pump-sdk": "4.0.0",
+    "@pump-fun/pump-swap-sdk": "2.1.0",
+    "@solana/spl-token": "0.4.14",
+    "@solana/web3.js": "1.98.4",
+    "bn.js": "5.2.5",
+    "bigint-buffer": "file:vendor/bigint-buffer"
+  },
+  "overrides": {"bn.js": "$bn.js", "jayson": "5.0.0", "toml": "5.0.0", "uuid": "11.1.1", "bigint-buffer": "$bigint-buffer"},
+  "devDependencies": {
+    "@apidevtools/swagger-parser": "13.1.0",
+    "wrangler": "4.149.0"
+  }
+}

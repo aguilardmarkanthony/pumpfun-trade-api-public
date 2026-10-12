@@ -1,0 +1,1396 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Pump Trade Router",
+    "version": "0.1.0-preview",
+    "description": "Developer preview. Automatic Pump/PumpSwap routing and atomic 10 bps fee on actual SOL/WSOL trade balance changes. Requires deployment of the included fee router program. Unsigned only; no execution guarantee."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8787"
+    }
+  ],
+  "paths": {
+    "/api/trade/local": {
+      "post": {
+        "operationId": "build_unsigned_trade",
+        "summary": "Build an unsigned buy or sell transaction",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Trade"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TradeRequest"
+              },
+              "example": {
+                "publicKey": "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
+                "mint": "6FhVPctYg363pQbs4iSvqyHe2cJzfsvFD96gePy6pump",
+                "action": "buy",
+                "amount": "0.01",
+                "slippageBps": 100,
+                "pool": "auto"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/quote": {
+      "post": {
+        "operationId": "quote_trade",
+        "summary": "Quote without building or checking funding",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Quote"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TradeRequest"
+              },
+              "example": {
+                "publicKey": "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
+                "mint": "6FhVPctYg363pQbs4iSvqyHe2cJzfsvFD96gePy6pump",
+                "action": "buy",
+                "amount": "0.01",
+                "slippageBps": 100,
+                "pool": "auto"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/curve/{mint}": {
+      "get": {
+        "operationId": "get_bonding_curve",
+        "summary": "Inspect curve completion and reserves",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Curve"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mint",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 44
+            },
+            "example": "6FhVPctYg363pQbs4iSvqyHe2cJzfsvFD96gePy6pump"
+          }
+        ]
+      }
+    },
+    "/api/health": {
+      "get": {
+        "operationId": "service_health",
+        "summary": "Service liveness; does not probe RPC",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/capabilities": {
+      "get": {
+        "operationId": "service_capabilities",
+        "summary": "Inspect supported venues and limits",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Capabilities"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TradeRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "publicKey",
+          "mint",
+          "action",
+          "amount"
+        ],
+        "properties": {
+          "publicKey": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 44
+          },
+          "mint": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 44
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "buy",
+              "sell"
+            ]
+          },
+          "amount": {
+            "oneOf": [
+              {
+                "type": "string",
+                "maxLength": 30
+              },
+              {
+                "type": "number",
+                "exclusiveMinimum": true,
+                "minimum": 0
+              }
+            ],
+            "description": "Buy: SOL up to nine decimals and 100 SOL. Sell: raw integer token units. Exact strings preferred."
+          },
+          "denominatedInSol": {
+            "type": "boolean"
+          },
+          "pool": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "pump",
+              "pumpswap"
+            ],
+            "default": "auto"
+          },
+          "slippageBps": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5000,
+            "default": 100
+          },
+          "slippage": {
+            "type": "number",
+            "minimum": 0.01,
+            "maximum": 50,
+            "description": "Legacy percent; mutually exclusive with slippageBps."
+          },
+          "priorityFee": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000000,
+            "default": 0,
+            "description": "Maximum priority budget in lamports, not SOL."
+          },
+          "simulate": {
+            "type": "boolean",
+            "default": true,
+            "description": "Applied only to builds; quotes do not simulate."
+          }
+        }
+      },
+      "Quote": {
+        "type": "object",
+        "required": [
+          "venue",
+          "quotedOut",
+          "expectedOut",
+          "minOut",
+          "contextSlot",
+          "simulation",
+          "requestId"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "venue": {
+            "type": "string",
+            "enum": [
+              "pump",
+              "pumpswap"
+            ]
+          },
+          "pool": {
+            "type": "string"
+          },
+          "poolAddress": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 44
+          },
+          "mint": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 44
+          },
+          "action": {
+            "type": "string"
+          },
+          "tradeMode": {
+            "type": "string",
+            "enum": [
+              "exact_input",
+              "exact_output_with_max_input"
+            ]
+          },
+          "amountIn": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "inputUnit": {
+            "type": "string"
+          },
+          "quotedOut": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "expectedOut": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "minOut": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "outputUnit": {
+            "type": "string"
+          },
+          "outputAsset": {
+            "type": "string"
+          },
+          "tokenDecimals": {
+            "type": "integer"
+          },
+          "slippageBps": {
+            "type": "integer"
+          },
+          "contextSlot": {
+            "type": "integer"
+          },
+          "serviceFeeBps": {
+            "type": "integer",
+            "enum": [
+              10
+            ]
+          },
+          "feeRecipient": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 44
+          },
+          "feeAsset": {
+            "type": "string",
+            "enum": [
+              "SOL",
+              "WSOL"
+            ]
+          },
+          "feeCollection": {
+            "type": "string"
+          },
+          "estimatedServiceFeeLamports": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "maxServiceFeeLamports": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "minNetOut": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "expectedNetOut": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "feeEstimateIsFinal": {
+            "type": "boolean"
+          },
+          "protocolFeesIncluded": {
+            "type": "boolean"
+          },
+          "quoteIsExecutionGuarantee": {
+            "type": "boolean"
+          },
+          "existingWsolAccountPreserved": {
+            "type": "boolean"
+          },
+          "simulation": {
+            "type": "object",
+            "required": [
+              "status"
+            ],
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "passed",
+                  "not_run"
+                ]
+              },
+              "contextSlot": {
+                "type": "integer"
+              },
+              "unitsConsumed": {
+                "type": "integer"
+              },
+              "signatureVerification": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
+      "Trade": {
+        "type": "object",
+        "required": [
+          "transaction",
+          "requiredSigner",
+          "unsigned",
+          "submitted",
+          "blockhash",
+          "lastValidBlockHeight",
+          "minOut",
+          "simulation",
+          "requestId"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "venue": {
+            "type": "string",
+            "enum": [
+              "pump",
+              "pumpswap"
+            ]
+          },
+          "pool": {
+            "type": "string"
+          },
+          "poolAddress": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 44
+          },
+          "mint": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 44
+          },
+          "action": {
+            "type": "string"
+          },
+          "tradeMode": {
+            "type": "string",
+            "enum": [
+              "exact_input",
+              "exact_output_with_max_input"
+            ]
+          },
+          "amountIn": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "inputUnit": {
+            "type": "string"
+          },
+          "quotedOut": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "expectedOut": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "minOut": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "outputUnit": {
+            "type": "string"
+          },
+          "outputAsset": {
+            "type": "string"
+          },
+          "tokenDecimals": {
+            "type": "integer"
+          },
+          "slippageBps": {
+            "type": "integer"
+          },
+          "contextSlot": {
+            "type": "integer"
+          },
+          "serviceFeeBps": {
+            "type": "integer",
+            "enum": [
+              10
+            ]
+          },
+          "feeRecipient": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 44
+          },
+          "feeAsset": {
+            "type": "string",
+            "enum": [
+              "SOL",
+              "WSOL"
+            ]
+          },
+          "feeCollection": {
+            "type": "string"
+          },
+          "estimatedServiceFeeLamports": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "maxServiceFeeLamports": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "minNetOut": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "expectedNetOut": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "feeEstimateIsFinal": {
+            "type": "boolean"
+          },
+          "protocolFeesIncluded": {
+            "type": "boolean"
+          },
+          "quoteIsExecutionGuarantee": {
+            "type": "boolean"
+          },
+          "existingWsolAccountPreserved": {
+            "type": "boolean"
+          },
+          "simulation": {
+            "type": "object",
+            "required": [
+              "status"
+            ],
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "passed",
+                  "not_run"
+                ]
+              },
+              "contextSlot": {
+                "type": "integer"
+              },
+              "unitsConsumed": {
+                "type": "integer"
+              },
+              "signatureVerification": {
+                "type": "boolean"
+              }
+            }
+          },
+          "transaction": {
+            "type": "string",
+            "description": "Unsigned base64 serialized v0 transaction; no more than 1232 bytes decoded."
+          },
+          "requiredSigner": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 44
+          },
+          "unsigned": {
+            "type": "boolean"
+          },
+          "submitted": {
+            "type": "boolean"
+          },
+          "blockhash": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 44
+          },
+          "lastValidBlockHeight": {
+            "type": "integer"
+          },
+          "estimatedNetworkFeeLamports": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "accountRentIncluded": {
+            "type": "boolean"
+          },
+          "transactionBytes": {
+            "type": "integer"
+          },
+          "computeUnitLimit": {
+            "type": "integer"
+          },
+          "priorityFeeLamports": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "rpcCalls": {
+            "type": "integer"
+          },
+          "instructionSummary": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "programId",
+                "operation"
+              ],
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "minLength": 32,
+                  "maxLength": 44
+                },
+                "operation": {
+                  "type": "string"
+                },
+                "lamports": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "error",
+          "requestId"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "Curve": {
+        "type": "object",
+        "required": [
+          "mint",
+          "complete",
+          "route",
+          "contextSlot",
+          "poolValidated",
+          "requestId"
+        ],
+        "properties": {
+          "mint": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 44
+          },
+          "complete": {
+            "type": "boolean"
+          },
+          "route": {
+            "type": "string",
+            "enum": [
+              "pump",
+              "pumpswap",
+              "migration_pending"
+            ]
+          },
+          "contextSlot": {
+            "type": "integer"
+          },
+          "virtualTokenReserves": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "virtualQuoteReserves": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "realTokenReserves": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "realQuoteReserves": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "tokenTotalSupply": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "isCashbackCoin": {
+            "type": "boolean"
+          },
+          "isMayhemMode": {
+            "type": "boolean"
+          },
+          "quoteMint": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 44
+          },
+          "poolValidated": {
+            "type": "boolean"
+          },
+          "requestId": {
+            "type": "string"
+          }
+        }
+      },
+      "Health": {
+        "type": "object",
+        "required": [
+          "status",
+          "name",
+          "version",
+          "requestId"
+        ],
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          }
+        }
+      },
+      "Capabilities": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "venues": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "quoteAssets": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "unsignedOnly": {
+            "type": "boolean"
+          },
+          "serviceFeeBps": {
+            "type": "integer"
+          },
+          "maxBuySol": {
+            "type": "string"
+          },
+          "maxBodyBytes": {
+            "type": "integer"
+          },
+          "slippageBps": {
+            "type": "object"
+          },
+          "simulationDefault": {
+            "type": "boolean"
+          },
+          "raydium": {
+            "type": "boolean"
+          },
+          "eventHistory": {
+            "type": "boolean"
+          },
+          "sdkVersions": {
+            "type": "object"
+          },
+          "requestId": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "proxySecret": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-RapidAPI-Proxy-Secret"
+      }
+    }
+  },
+  "security": [
+    {
+      "proxySecret": []
+    }
+  ]
+}

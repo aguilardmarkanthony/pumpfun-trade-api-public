@@ -1,0 +1,9 @@
+{
+  "publicKey": "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
+  "mint": "6nTDSkevucpPhzhhDa6n3Gpye92HYuVq2ZiK4Xs8pump",
+  "action": "sell",
+  "amount": "1000000",
+  "pool": "auto",
+  "slippageBps": 100,
+  "simulate": true
+}

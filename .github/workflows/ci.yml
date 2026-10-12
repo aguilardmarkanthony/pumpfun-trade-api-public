@@ -1,0 +1,49 @@
+name: Verify API and fee program
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm test
+      - run: npm run check
+      - run: npm run build:check
+      - run: npm audit --audit-level=moderate
+  program:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install host Rust tools
+        run: rustup toolchain install 1.89.0 --profile minimal --component rustfmt,clippy
+      - run: cargo +1.89.0 fmt --manifest-path programs/fee-router/Cargo.toml --check
+      - run: cargo +1.89.0 test --manifest-path programs/fee-router/Cargo.toml --locked
+      - run: cargo +1.89.0 clippy --manifest-path programs/fee-router/Cargo.toml --locked --all-targets -- -D warnings
+      - name: Install verified Agave build tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 -o "$RUNNER_TEMP/agave.tar.bz2" https://github.com/anza-xyz/agave/releases/download/v4.3.0/solana-release-x86_64-unknown-linux-gnu.tar.bz2
+          echo "c97289a8abb1d0efb497d8b5cb285baabd9b7f8ea6647f5d145c5dc8ff3611e8  $RUNNER_TEMP/agave.tar.bz2" | sha256sum --check
+          tar -xjf "$RUNNER_TEMP/agave.tar.bz2" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/solana-release/bin" >> "$GITHUB_PATH"
+      - name: Compile SBF (no deployment)
+        run: cargo build-sbf --manifest-path programs/fee-router/Cargo.toml --sbf-out-dir "$RUNNER_TEMP/fee-router-artifact" -- --locked
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fee-router-sbf-preview
+          path: ${{ runner.temp }}/fee-router-artifact/pump_trade_fee_router.so
+          if-no-files-found: error

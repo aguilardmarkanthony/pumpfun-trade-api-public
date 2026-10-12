@@ -1,0 +1,1 @@
+{"name":"bigint-buffer","version":"1.1.5-pure-js.1","private":true,"main":"index.cjs","description":"Local pure-JavaScript adapter for the four bigint-buffer conversion functions; no native addon"}
