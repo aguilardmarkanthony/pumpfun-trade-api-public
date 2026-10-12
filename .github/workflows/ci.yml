@@ -42,6 +42,20 @@ jobs:
           echo "$RUNNER_TEMP/solana-release/bin" >> "$GITHUB_PATH"
       - name: Compile SBF (no deployment)
         run: cargo build-sbf --manifest-path programs/fee-router/Cargo.toml --sbf-out-dir "$RUNNER_TEMP/fee-router-artifact" -- --locked
+      - name: Compile local test double (never deployed)
+        run: cargo build-sbf --manifest-path validation/mock-market/Cargo.toml --sbf-out-dir "$RUNNER_TEMP/fee-router-artifact" -- --locked
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install isolated VM validation dependencies
+        run: |
+          npm ci --ignore-scripts
+          npm ci --ignore-scripts --prefix validation/vm
+          npm audit --audit-level=moderate --prefix validation/vm
+      - name: Execute compiled router in local SVM
+        env:
+          SBF_ARTIFACT_DIR: ${{ runner.temp }}/fee-router-artifact
+        run: node --test validation/vm/runtime.test.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: fee-router-sbf-preview

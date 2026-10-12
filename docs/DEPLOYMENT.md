@@ -36,7 +36,7 @@ After deployment:
 
 1. Record the cluster, program ID, source commit, compiled artifact hash and upgrade authority.
 2. Verify the deployed executable against the reviewed artifact and document whether its upgrade authority remains active. Do not silently change the fee policy via an upgrade.
-3. Initialize the recipient's canonical wrapped-SOL account with its owner's approved wallet workflow so the first customer need not fund that rent.
+3. Initialize/fund the native SOL recipient and its canonical wrapped-SOL account with the owner's approved wallet workflow. Native curve builds fail with `FEE_RECIPIENT_NOT_READY` while the recipient is absent or invalid. Precreating its WSOL account avoids passing setup rent to the first customer.
 4. Set `FEE_ROUTER_PROGRAM_ID` and restart the API.
 5. Use read-only simulation against real, current curve and PumpSwap state. Verify exact fee destinations and observed SOL/WSOL deltas.
 6. Publish a release record distinguishing simulations from any owner-authorized live trades. Only then advertise an operational fee-bearing endpoint.

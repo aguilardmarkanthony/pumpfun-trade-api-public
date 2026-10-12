@@ -1,0 +1,8 @@
+{
+  "name": "pump-router-vm-validation",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Linux/macOS-only SBF validation; not part of the API runtime",
+  "dependencies": {"litesvm": "1.6.0", "@solana/kit": "8.0.0"}
+}

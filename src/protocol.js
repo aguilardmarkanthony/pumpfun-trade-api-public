@@ -6,6 +6,7 @@ const {PUMP_SDK,PUMP_PROGRAM_ID,PUMP_FEE_PROGRAM_ID,GLOBAL_PDA,PUMP_FEE_CONFIG_P
 const {PUMP_AMM_SDK,PUMP_AMM_PROGRAM_ID,GLOBAL_CONFIG_PDA,PUMP_AMM_FEE_CONFIG_PDA,pumpPoolAuthorityPda,buyQuoteInput,sellBaseInput} = sdk.swap;
 import {ApiError} from './http.js';
 import {minimumOut,U64_MAX} from './input.js';
+import {FEE_RECIPIENT} from './fees.js';
 const bn=x=>new BN(String(x));
 const bad=(message='On-chain account validation failed.')=>{throw new ApiError(503,'INVALID_CHAIN_STATE',message);};
 export function owned(info,owner){if(!info||info.executable||!info.owner.equals(owner))bad();return info;}
@@ -51,9 +52,13 @@ export async function loadState(rpc,input,routerProgram=null) {
   // All pricing inputs, vaults and balances are read from one confirmed bank.
   const volumeKey=sdk.pump.userVolumeAccumulatorPda(user);
   const extraIndex=keys.length;
-  if(routerProgram)keys.push(routerProgram,...(venue==='pump'?[volumeKey]:[]));
+  if(routerProgram)keys.push(routerProgram,FEE_RECIPIENT,...(venue==='pump'?[volumeKey]:[]));
   const accounts=await rpc.accounts(keys),[currentMintInfo,currentCurveInfo,userBaseAccountInfo,walletInfo]=accounts;
   if(routerProgram&&!accounts[extraIndex]?.executable)throw new ApiError(503,'FEE_ROUTER_NOT_DEPLOYED','Configured fee router is not an executable on-chain program.');
+  if(routerProgram&&venue==='pump'){
+    const recipient=accounts[extraIndex+1];
+    if(!recipient||!recipient.owner.equals(SystemProgram.programId)||recipient.executable||recipient.data.length||recipient.lamports<=0)throw new ApiError(503,'FEE_RECIPIENT_NOT_READY','The operator must initialize the SOL fee recipient before enabling builds.');
+  }
   const mintAccount=decodeMint(mint,currentMintInfo);
   if(!currentMintInfo.owner.equals(tokenProgram))bad();
   const currentCurve=PUMP_SDK.decodeBondingCurve(owned(currentCurveInfo,PUMP_PROGRAM_ID));
@@ -62,7 +67,7 @@ export async function loadState(rpc,input,routerProgram=null) {
   if(chooseRoute(currentCurve,input.pool,venue==='pumpswap')!==venue)throw new ApiError(409,'VENUE_CHANGED','The token changed venue during the snapshot; retry.');
   const userBase=tokenAccount(userBaseTokenAccount,userBaseAccountInfo,mint,user,tokenProgram,true);
   if(walletInfo&&(!walletInfo.owner.equals(SystemProgram.programId)||walletInfo.executable))throw new ApiError(422,'INVALID_WALLET','The wallet must be a normal system account.');
-  const volumeInfo=routerProgram&&venue==='pump'?accounts[extraIndex+1]:undefined;
+  const volumeInfo=routerProgram&&venue==='pump'?accounts[extraIndex+2]:undefined;
   if(volumeInfo&&(!volumeInfo.owner.equals(PUMP_PROGRAM_ID)||volumeInfo.executable||!volumeInfo.data.length))bad('Volume account is invalid.');
   const common={venue,mint,user,tokenProgram,mintAccount,curve:currentCurve,curveKey,userBaseTokenAccount,userBaseAccountInfo,userBase,walletInfo,slot:rpc.slot,routerProgram,volumeInfo};
   if(venue==='pump') {

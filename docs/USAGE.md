@@ -105,6 +105,7 @@ Build close to signing time. After a confirmed failure or an expired transaction
 | Code | What to do |
 | --- | --- |
 | `FEE_ROUTER_NOT_DEPLOYED` | The operator must deploy/configure the fee program. Quotes alone do not collect fees. |
+| `FEE_RECIPIENT_NOT_READY` | The operator must initialize the native SOL recipient wallet. |
 | `VENUE_CHANGED` | Build again with `pool: "auto"`. |
 | `MIGRATION_PENDING` | Wait for the canonical PumpSwap pool, then request a fresh build. |
 | `GRADUATION_BOUNDARY` | Reduce the buy size or rebuild after migration. |

@@ -1,5 +1,6 @@
 import sdk from '../src/sdk.cjs';
 import BN from 'bn.js';
+import {FEE_RECIPIENT} from '../src/fees.js';
 import {PublicKey,SystemProgram} from '@solana/web3.js';
 import {TOKEN_PROGRAM_ID,NATIVE_MINT,MintLayout,AccountLayout,getAssociatedTokenAddressSync} from '@solana/spl-token';
 const {PUMP_SDK,PUMP_PROGRAM_ID,PUMP_FEE_PROGRAM_ID,GLOBAL_PDA,PUMP_FEE_CONFIG_PDA,bondingCurvePda,canonicalPumpPoolPda} = sdk.pump;
@@ -30,6 +31,7 @@ export async function fixture({graduated=false,cashback=false,existingWsol=false
  const curveKey=bondingCurvePda(MINT),poolKey=canonicalPumpPoolPda(MINT),accounts=new Map();
  const set=(key,value)=>accounts.set(key.toBase58(),value);
  set(ROUTER,{data:Buffer.alloc(0),owner:new PublicKey('BPFLoaderUpgradeab1e11111111111111111111111'),lamports:1,executable:true});
+ set(FEE_RECIPIENT,{data:Buffer.alloc(0),owner:SystemProgram.programId,lamports:10000000,executable:false});
  set(sdk.pump.userVolumeAccumulatorPda(USER),info(Buffer.alloc(128),PUMP_PROGRAM_ID));
  set(MINT,mintInfo());set(USER,{data:Buffer.alloc(0),owner:SystemProgram.programId,lamports:100000000000,executable:false});
  set(getAssociatedTokenAddressSync(MINT,USER,false,TOKEN_PROGRAM_ID),tokenInfo(MINT,USER,500000000000n));

@@ -12,6 +12,7 @@ Scope: the public API, exact-fee CPI wrapper, routing checks, fee disclosure, ex
 6. Buy funding checks now include the maximum service fee and network fee. Rent remains separate and simulation catches additional account-funding requirements.
 7. Missing program configuration must not produce an uncharged build. Builds fail closed until an executable router address is configured.
 8. Public docs and examples must not imply that the existing RapidAPI service has started charging a new fee. They identify this as a separate, undeployed preview.
+9. A new recipient wallet may not yet exist on chain. Native builds now return an operator setup error instead of relying on a small first fee transfer to initialize it. A read-only launch check found that recipient setup is still required; no funds were moved.
 
 ## Verification
 

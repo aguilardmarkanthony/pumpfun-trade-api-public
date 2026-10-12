@@ -24,6 +24,11 @@ test('public input cannot override the recipient, rate or router',async()=>{
   for(const field of ['feeRecipient','serviceFeeBps','feeRouterProgramId']) await assert.rejects(()=>trade({...buy,[field]:'anything'},ENV,true),e=>e.code==='INVALID_INPUT');
 });
 
+test('uninitialized native fee recipient fails with an operator setup error',async()=>{
+  const f=await fixture();f.accounts.delete(FEE_RECIPIENT.toBase58());
+  await assert.rejects(()=>trade(buy,ENV,true,()=>f.rpc),e=>e.code==='FEE_RECIPIENT_NOT_READY');
+});
+
 for(const graduated of [false,true])for(const action of ['buy','sell'])test(`fee wrapper ${graduated?'AMM':'curve'} ${action} binds recipient, stage and original instruction`,async()=>{
   const f=await fixture({graduated}),input=tradeInput(action==='buy'?buy:sell),state=await loadState(f.rpc,input,ROUTER),quote=quoteState(state,input);
   const original=await instructions(state,input,quote),wrapped=wrapWithFee(original,input,state,quote,ROUTER);
