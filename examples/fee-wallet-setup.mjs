@@ -1,4 +1,6 @@
-// Operator-only setup. Reads the chain and returns one unsigned ATA-creation
+// OPTIONAL operator setup; the default Jupiter service creates the fee account
+// automatically in the first successful trade. This helper is only for operators
+// who choose to fund that account beforehand. It reads the chain and returns one unsigned ATA-creation
 // transaction. It never signs, sends SOL, wraps SOL, approves spending or trades.
 import {SystemProgram,TransactionMessage,VersionedTransaction} from '@solana/web3.js';
 import {NATIVE_MINT,TOKEN_PROGRAM_ID,ACCOUNT_SIZE,unpackAccount,createAssociatedTokenAccountIdempotentInstruction} from '@solana/spl-token';
