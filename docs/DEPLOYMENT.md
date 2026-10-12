@@ -4,7 +4,18 @@ The default configuration uses Cloudflare Workers and Jupiter's existing on-chai
 
 ## Hosted public beta
 
-**https://pump-trade-router.apilabph.workers.dev** runs **0.3.0-beta** with a **0.25% service fee** and public access. No customer API key is required. It was deployed and verified on October 13, 2026 (Singapore time).
+**https://pump-trade-router.apilabph.workers.dev** runs **0.3.1-beta** with a **0.25% service fee** and public access. No customer API key is required. It was deployed and verified on October 13, 2026 (Singapore time).
+
+- Runtime source: `faad60952a2fe972519df9adcec7e8177f215606`.
+- Cloudflare Worker version: `a70b30a8-0335-4c49-b879-325b9dd98d01`.
+- The origin now serves [public HTML documentation](https://pump-trade-router.apilabph.workers.dev/), robots rules and a sitemap. Hosted HTML exactly matched the reviewed source.
+- [Nine hosted checks](verification-0.3.1-discovery.json) passed: GET/HEAD page delivery, 405 for POST to the page, robots/sitemap, health/capabilities and 409 fee-ceiling rejection through both trade POST routes. The API still reports 25 bps and no customer key.
+- All 72 JavaScript tests passed locally and in the Node 22/24 jobs of [CI run 38293879273](https://github.com/apilabph/pumpfun-trade-api-public/actions/runs/38293879273). Syntax, OpenAPI, documentation links, Worker bundling and dependency audit passed. The Rust host checks, SBF compilation and all 11 program VM tests also passed.
+- Desktop HTML was visually checked. Automatic approval review blocked the separate mobile browser launch with only "blocked by policy"; mobile visual verification remains incomplete.
+
+No new chain simulations were needed for this static-documentation change; the earlier four-direction evidence below is historical, not a new 0.3.1 test. No trade was signed or submitted. GitHub's About homepage now links to the HTML quickstart. Search Console ownership and Google indexing remain unverified; see [discovery operations](DISCOVERY.md).
+
+## Previous 0.3.0-beta trading verification
 
 - Runtime source: `8a1518b7b2868c947aa70c6ee2fa15081a570af6`.
 - Cloudflare Worker version: `717b7287-45f6-4cad-bd0f-507166168b91`.

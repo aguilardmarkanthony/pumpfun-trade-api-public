@@ -1,0 +1,71 @@
+{
+  "checkedAtUtc": "2026-10-12T18:54:07.096Z",
+  "localDate": "2026-10-13",
+  "runtimeSource": "faad60952a2fe972519df9adcec7e8177f215606",
+  "workerVersion": "a70b30a8-0335-4c49-b879-325b9dd98d01",
+  "version": "0.3.1-beta",
+  "pageMatchesReviewedSource": true,
+  "pageSha256": "83af076672fbf70a6052ace34173e60114a58153c386bfdd345ef37706fcd004",
+  "canonical": "https://pump-trade-router.apilabph.workers.dev/",
+  "robots": "User-agent: *\nAllow: /\nDisallow: /api/\nSitemap: https://pump-trade-router.apilabph.workers.dev/sitemap.xml\n",
+  "sitemap": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"><url><loc>https://pump-trade-router.apilabph.workers.dev/</loc></url></urlset>\n",
+  "serviceFeeBps": 25,
+  "apiKeyRequired": false,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "method": "HEAD",
+      "path": "/",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "status": 405,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "path": "/sitemap.xml",
+      "status": 200,
+      "contentType": "application/xml; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "path": "/robots.txt",
+      "status": 200,
+      "contentType": "text/plain; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "path": "/api/health",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "GET",
+      "path": "/api/capabilities",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "path": "/api/quote",
+      "status": 409,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "method": "POST",
+      "path": "/api/trade/local",
+      "status": 409,
+      "contentType": "application/json; charset=utf-8"
+    }
+  ],
+  "verificationLimit": "Static delivery and API regression smoke checks only; no chain simulation, signing or submission in these checks. Google Search Console ownership, indexing and ranking are unverified."
+}
