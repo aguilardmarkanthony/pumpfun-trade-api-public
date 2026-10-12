@@ -1,12 +1,14 @@
-# Pump Trade Router
+# Pumpfun Buy and Sell API - Pump Trade Router
 
-Buy and sell Pump tokens without guessing which market they use.
+An independent Pump.fun (Pumpfun) buy and sell API for Solana. Build trades for bonding-curve tokens and graduated PumpSwap tokens without guessing which market they use.
 
 [![Checks](https://github.com/apilabph/pumpfun-trade-api-public/actions/workflows/ci.yml/badge.svg)](https://github.com/apilabph/pumpfun-trade-api-public/actions/workflows/ci.yml)
 
 Give the API a token mint, your public wallet address and an amount. It checks the token's on-chain stage, selects the bonding curve or canonical PumpSwap pool, and returns a simulated, unsigned transaction. Your wallet or bot signs and submits it.
 
 **Standalone public beta.** No marketplace subscription, signup or API key is required in public mode. The API uses Jupiter's existing on-chain router; you do not deploy a custom Solana program. This repository contains both the API and the client examples.
+
+Pump Trade Router is maintained by API Lab PH and is not an official Pump.fun or PumpSwap product.
 
 ## What it does
 
