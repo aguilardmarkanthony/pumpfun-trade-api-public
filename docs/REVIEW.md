@@ -20,11 +20,12 @@ Scope: the public API, exact-fee CPI wrapper, routing checks, fee disclosure, ex
 - Rust host tests cover integer arithmetic, malformed packets, all eight instruction variants using mocked CPI, actual-versus-quoted fee differences, wrong signer/recipient/program/WSOL owner/mint, noncanonical pool, stage changes, and no fee transfer after a failed trade invocation.
 - Rust formatting and Clippy run with warnings treated as errors. JavaScript syntax, OpenAPI schemas, Worker bundling and npm dependency audit are checked.
 - CI includes Node 22/24, Rust host checks and SBF compilation. The README badge links to actual run status; a configured job is not proof that it passed.
+- A separate Linux/macOS LiteSVM suite loads the compiled fee router and a compiled mock market. It tests actual runtime fee transfers, all eight instruction variants, stage/recipient rejection and atomic rollback after a later instruction fails. The mock market is a test double, not Pump's implementation, and is never deployed. Its dependencies are isolated from the API runtime.
 - The public export starts with a new history. Private deployment records, encrypted credentials, research files and the original repository's history are excluded.
 
 ## Limits and remaining release work
 
-Rust CPI tests use deterministic host stubs. They do **not** emulate Solana's transaction rollback, compute metering, loader privilege checks or the actual Pump program. API simulations in offline tests also use fixtures. This fee-bearing edition has not been simulated against a deployed real-protocol router, and no real trade has been signed or sent.
+Rust host CPI tests use deterministic stubs. The separate LiteSVM suite exercises the compiled router's runtime execution with mock markets; it still does not validate real Pump/PumpSwap behavior. API simulations in offline tests use fixtures. This fee-bearing edition has not been simulated against a deployed real-protocol router, and no real trade has been signed or sent. Local VM tests disable signature verification and use artificial balances; they are not mainnet submissions.
 
 Before operational release, validate the compiled program in a validator environment with current protocol accounts, then verify an owner-controlled deployment and repeat unsigned real-protocol simulations. Measure compute usage and packet sizes for real account layouts. Have a separate reviewer audit the program before exposing customer funds.
 

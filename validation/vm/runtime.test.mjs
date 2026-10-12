@@ -49,7 +49,7 @@ async function setup({graduated=false,action='buy',cashback=false,attack}={}){
   const bytes=new VersionedTransaction(message).serialize();
   const destination=graduated?FEE_ATA:FEE_RECIPIENT;
   const balance=()=>graduated?AccountLayout.decode(Buffer.from(svm.getAccount(destination.toBase58()).data)).amount:svm.getBalance(destination.toBase58());
-  return {svm,bytes,balance};
+  return {svm,bytes,balance,lastInstruction:message.compiledInstructions.length-1};
 }
 
 for(const graduated of [false,true])for(const action of ['buy','sell'])for(const cashback of [false,true])test(`SBF runtime: ${graduated?'AMM':'curve'} ${action}, cashback=${cashback}, actual fee`,async()=>{
@@ -60,7 +60,13 @@ for(const graduated of [false,true])for(const action of ['buy','sell'])for(const
   assert.notEqual(FEE,GROSS);assert.ok(result.computeUnitsConsumed()<400000n);
 });
 for(const attack of ['stage','recipient','rollback'])test(`SBF runtime refuses ${attack} and leaves fee recipient unchanged`,async()=>{
-  const {svm,bytes,balance}=await setup({attack,action:'sell'});const before=balance();
+  const {svm,bytes,balance,lastInstruction}=await setup({attack,action:'sell'});const before=balance();
   const result=svm.sendTransaction(getTransactionDecoder().decode(bytes));
   assert.ok(result instanceof FailedTransactionMetadata);assert.equal(balance(),before);
+  if(attack==='rollback'){
+    assert.equal(result.err().index,lastInstruction);
+    assert.ok(result.meta().logs().includes(`Program ${ROUTER.toBase58()} success`));
+  }else{
+    assert.ok(String(result.err()).includes(attack==='stage'?'6001':'6000'));
+  }
 });

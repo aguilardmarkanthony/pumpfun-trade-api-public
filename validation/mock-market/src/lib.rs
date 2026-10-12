@@ -17,6 +17,11 @@ const PUMP: Pubkey = pubkey!("6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P");
 const TOKEN: Pubkey = pubkey!("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
 const WSOL: Pubkey = pubkey!("So11111111111111111111111111111111111111112");
 fn process(id: &Pubkey, a: &[AccountInfo], data: &[u8]) -> ProgramResult {
+    // The legacy SDK can request pool extension before the trade. The fixture
+    // already has enough data; this test double only acknowledges that opcode.
+    if id != &PUMP && data == [234, 102, 194, 203, 150, 72, 62, 229] {
+        return Ok(());
+    }
     if data.len() < 24 {
         return Err(ProgramError::InvalidInstructionData);
     }
