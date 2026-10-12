@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Pump Trade Router",
-    "version": "0.1.0-preview",
-    "description": "Developer preview. Automatic Pump/PumpSwap routing and atomic 10 bps fee on actual SOL/WSOL trade balance changes. Requires deployment of the included fee router program. Unsigned only; no execution guarantee."
+    "version": "0.2.0-beta",
+    "description": "Standalone unsigned Pump/PumpSwap trade API. Public access needs no API key. Automatic stage detection; 10 bps fee in WSOL through Jupiter Metis. First trader funds fee-account rent if missing. Builds require simulation. No execution guarantee."
   },
   "servers": [
     {
@@ -127,6 +127,16 @@
             }
           },
           "500": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
             "description": "Request or service error",
             "content": {
               "application/json": {
@@ -292,6 +302,16 @@
               }
             }
           },
+          "502": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
           "503": {
             "description": "Request or service error",
             "content": {
@@ -439,6 +459,16 @@
             }
           },
           "500": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
             "description": "Request or service error",
             "content": {
               "application/json": {
@@ -599,6 +629,16 @@
               }
             }
           },
+          "502": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
           "503": {
             "description": "Request or service error",
             "content": {
@@ -738,6 +778,16 @@
               }
             }
           },
+          "502": {
+            "description": "Request or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
           "503": {
             "description": "Request or service error",
             "content": {
@@ -829,7 +879,7 @@
           "simulate": {
             "type": "boolean",
             "default": true,
-            "description": "Applied only to builds; quotes do not simulate."
+            "description": "Must be true for public Jupiter builds; quotes do not simulate."
           }
         }
       },
@@ -933,6 +983,38 @@
           "feeCollection": {
             "type": "string"
           },
+          "feeAccount": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 44
+          },
+          "feeRouterProgramId": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 44
+          },
+          "routingProvider": {
+            "type": "string"
+          },
+          "feeBasis": {
+            "type": "string"
+          },
+          "feeIncludedInInput": {
+            "type": "boolean"
+          },
+          "outputIncludesServiceFee": {
+            "type": "boolean"
+          },
+          "feeAccountSetupRequired": {
+            "type": "boolean"
+          },
+          "feeAccountSetupPaidBy": {
+            "type": "string"
+          },
+          "feeAccountSetupRentLamports": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
           "estimatedServiceFeeLamports": {
             "type": "string",
             "pattern": "^[0-9]+$"
@@ -982,6 +1064,10 @@
               },
               "signatureVerification": {
                 "type": "boolean"
+              },
+              "serviceFeeLamports": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
               }
             }
           }
@@ -1089,6 +1175,38 @@
           "feeCollection": {
             "type": "string"
           },
+          "feeAccount": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 44
+          },
+          "feeRouterProgramId": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 44
+          },
+          "routingProvider": {
+            "type": "string"
+          },
+          "feeBasis": {
+            "type": "string"
+          },
+          "feeIncludedInInput": {
+            "type": "boolean"
+          },
+          "outputIncludesServiceFee": {
+            "type": "boolean"
+          },
+          "feeAccountSetupRequired": {
+            "type": "boolean"
+          },
+          "feeAccountSetupPaidBy": {
+            "type": "string"
+          },
+          "feeAccountSetupRentLamports": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
           "estimatedServiceFeeLamports": {
             "type": "string",
             "pattern": "^[0-9]+$"
@@ -1138,6 +1256,10 @@
               },
               "signatureVerification": {
                 "type": "boolean"
+              },
+              "serviceFeeLamports": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
               }
             }
           },
@@ -1387,9 +1509,5 @@
       }
     }
   },
-  "security": [
-    {
-      "bearerAuth": []
-    }
-  ]
+  "security": []
 }

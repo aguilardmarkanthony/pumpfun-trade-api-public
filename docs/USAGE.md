@@ -1,55 +1,41 @@
 # Use the API
 
-The operator does not approve customer trades or fee payments. Clients request a build, sign it with their own wallet and submit it. A trading bot can automate signing on the customer's side; the API never receives the signing key. Successful execution collects the service fee as part of the same transaction.
+Public mode has no signup, subscription or API key. The operator does not approve customer trades. Your wallet or bot signs the returned transaction locally; the API never receives your private key.
 
-In this preview, `API_KEY` is chosen by whoever hosts the server and shared with trusted clients. There is no signup portal or automatic key issuance yet. It is an API access key, not a wallet key. Initial deployment and fee-account setup are separate from routine trading and are not complete for a hosted service.
+## Buy
 
-## 1. Pick the token and amount
-
-Use a Solana token's **mint address**, not its ticker. Send your public wallet address, never your seed phrase or private key.
-
-Buy with 0.01 SOL:
+Send a POST request to `/api/trade/local` with `Content-Type: application/json`:
 
 ```json
-{
-  "publicKey": "YOUR_PUBLIC_WALLET",
-  "mint": "TOKEN_MINT",
-  "action": "buy",
-  "amount": "0.01",
-  "pool": "auto",
-  "slippageBps": 100,
-  "simulate": true
-}
+{"publicKey":"YOUR_PUBLIC_WALLET","mint":"TOKEN_MINT","action":"buy","amount":"0.01","pool":"auto","slippageBps":100,"simulate":true}
 ```
 
-Sell one token with six decimals:
+Use a mint address, not a ticker. This spends up to the 0.01 SOL input budget, including our 0.1% service fee, plus network fees and any necessary account rent. `slippageBps: 100` means 1%. The service requires successful unsigned simulation before returning a build.
+
+## Sell
 
 ```json
-{
-  "publicKey": "YOUR_PUBLIC_WALLET",
-  "mint": "TOKEN_MINT",
-  "action": "sell",
-  "amount": "1000000",
-  "pool": "auto",
-  "slippageBps": 100,
-  "simulate": true
-}
+{"publicKey":"YOUR_PUBLIC_WALLET","mint":"TOKEN_MINT","action":"sell","amount":"1000000","pool":"auto","slippageBps":100,"simulate":true}
 ```
 
-Keep amounts in strings so JavaScript does not round large integers. `slippageBps: 100` means 1%. It limits price movement; it is not the 0.1% service fee. Sell amounts use the token's actual decimals, which may differ from this example.
+Sell amounts are raw token units. A six-decimal token has 1,000,000 units per token. Use decimal strings to avoid rounding errors. `minOut` and `expectedOut` are already net of the service fee in Jupiter mode; don't subtract it a second time.
 
-## 2. Ask for a quote
+Use `/api/quote` with the same body for a quote without a transaction or simulation. Quotes can work without enough wallet funds; builds cannot.
+
+## JavaScript
+
+From this repository:
 
 ```js
-import { quoteTrade } from './examples/client.mjs';
+import {buildTrade, quoteTrade} from './examples/client.mjs';
 
 const settings = {
-  baseUrl: 'http://localhost:8787',
-  apiKey: process.env.API_KEY
+  baseUrl: 'http://localhost:8787', // Replace with the deployed endpoint.
+  rpcUrl: process.env.SOLANA_RPC_URL // Used to resolve transaction lookup tables.
 };
 const order = {
-  publicKey: process.env.WALLET_ADDRESS,
-  mint: process.env.TOKEN_MINT,
+  publicKey: 'YOUR_PUBLIC_WALLET',
+  mint: 'TOKEN_MINT',
   action: 'buy',
   amount: '0.01',
   pool: 'auto',
@@ -57,65 +43,45 @@ const order = {
 };
 
 const quote = await quoteTrade(settings, order);
-console.log(quote.venue, quote.estimatedServiceFeeLamports, quote.feeAsset);
+console.log(quote.venue, quote.expectedOut, quote.estimatedServiceFeeLamports);
+
+const {response, transaction} = await buildTrade(settings, order);
+console.log('Fee recipient:', response.feeRecipient);
+console.log('Fee account setup rent:', response.feeAccountSetupRentLamports);
+console.log('Unsigned transaction:', response.transaction);
+// Pass transaction to your own wallet integration after reviewing costs.
+// This example does not sign or broadcast a transaction.
 ```
 
-`venue: "pump"` means the bonding curve. `venue: "pumpswap"` means a graduated canonical pool. The API checks the chain; you do not maintain a token-stage list.
+For a private self-hosted server only, add `apiKey: process.env.API_KEY`. The public service does not require that setting. Never place infrastructure credentials in a public browser bundle.
 
-## 3. Build an unsigned transaction
+The sample checks the signer, fee destination, encoded rate, amount, slippage and supported router instruction. It resolves lookup tables from chain. These are basic checks, not a complete independent audit of every instruction. Use a trusted endpoint and inspect the whole transaction before approving it.
 
-This step requires a deployed, configured and verified fee program.
-
-```js
-import { buildTrade } from './examples/client.mjs';
-
-const { response, transaction } = await buildTrade({
-  ...settings,
-  expectedRouterProgramId: process.env.FEE_ROUTER_PROGRAM_ID
-}, order);
-
-console.log(response.venue, response.simulation.status);
-// `transaction` is a VersionedTransaction for your wallet integration.
-// Review it and ask the user to approve it through their wallet.
-// This example does not sign or submit an order.
-```
-
-The client performs basic signer, wrapper and recipient checks. These are not a full independent transaction audit. Use an endpoint and deployed program you trust, and inspect every instruction before wallet approval. Keep your API key on the server; do not put it in a public browser bundle.
-
-## 4. Let the wallet handle execution
-
-Your application asks the wallet to sign locally, submits through its RPC, and monitors the resulting signature. Use `blockhash` and `lastValidBlockHeight` to handle expiration. A returned signature alone is not confirmation of a successful trade.
-
-Build close to signing time. After a confirmed failure or an expired transaction, fetch fresh state and build again. If submission status is unknown, check the original signature first; blindly building another order can produce duplicate trades.
-
-## Reading the result
+## Read the response
 
 | Field | Meaning |
 | --- | --- |
-| `expectedOut` | Estimated token units for buys, or gross SOL/WSOL lamports for sells |
-| `minOut` | Minimum output encoded in the underlying trade |
-| `minNetOut` | Sell minimum after the 0.1% service fee |
-| `estimatedServiceFeeLamports` | An estimate; the program uses the execution balance change |
-| `maxServiceFeeLamports` | Buy fee ceiling based on the input budget |
-| `feeAsset` | SOL on the curve; WSOL on PumpSwap |
-| `outputAsset` | Token on buys; SOL or WSOL on sells |
-| `simulation.status` | `passed` or `not_run`; simulation is enabled by default |
-| `submitted` | Always `false`; the API never broadcasts |
+| `venue` | `pump` for the curve, `pumpswap` for the canonical graduated pool. |
+| `transaction` | Base64 unsigned v0 transaction, ready for your wallet integration. |
+| `lastValidBlockHeight` | Expiry bound. Rebuild if it expires; don't keep retrying stale bytes. |
+| `expectedOut` / `minOut` | Estimated output / minimum output after service fees, in raw units. |
+| `simulation.serviceFeeLamports` | Fee observed in this unsigned simulation, not an earned-fee receipt. |
+| `feeAccountSetupRequired` | First use may require the trader to fund the service's WSOL account. |
+| `feeAccountSetupRentLamports` | That account's rent in this simulation; other account rent can be additional. |
+| `outputAsset` | Existing WSOL accounts stay open, so sell proceeds can remain WSOL. |
 
-1 SOL equals 1,000,000,000 lamports. Network fees and account rent are additional.
+Show first-use rent before asking a user to sign. The receiving account currently needs roughly 0.00149 SOL, which can exceed the fee on a small trade. See [Fees](FEES.md).
 
 ## Common errors
 
 | Code | What to do |
 | --- | --- |
-| `FEE_ROUTER_NOT_DEPLOYED` | The operator must deploy/configure the fee program. Quotes alone do not collect fees. |
-| `FEE_RECIPIENT_NOT_READY` | The operator must initialize the native SOL recipient wallet. |
-| `VENUE_CHANGED` | Build again with `pool: "auto"`. |
-| `MIGRATION_PENDING` | Wait for the canonical PumpSwap pool, then request a fresh build. |
-| `GRADUATION_BOUNDARY` | Reduce the buy size or rebuild after migration. |
-| `SIMULATION_FAILED` | Check token balance, SOL for fees/rent, and current token support. Fetch fresh state. |
-| `INSUFFICIENT_SOL_BALANCE` | Fund the wallet for input, maximum service fee, network fees and possible rent. |
-| `TRANSACTION_TOO_LARGE` | This route exceeds the supported 1232-byte v0 packet. This preview does not use lookup tables. |
-| `STALE_STATE` | Rebuild with current RPC data. |
+| `VENUE_CHANGED` | Request a fresh build with `pool: "auto"`. |
+| `MIGRATION_PENDING` | Wait for the canonical pool to become available. |
+| `GRADUATION_BOUNDARY` | Use a smaller buy or wait for graduation. |
+| `SIMULATION_FAILED` | Check wallet balances, rent, liquidity and stage, then rebuild. |
+| `ROUTE_UNAVAILABLE` | Retry later; the upstream may not have indexed this token yet. |
+| `ROUTE_REJECTED` | The returned route failed safety checks; no transaction is returned. |
+| `RATE_LIMITED` | Honor `Retry-After` and back off. |
 
-The on-chain router's custom errors are documented in [deployment notes](DEPLOYMENT.md). SOL pairs and canonical PumpSwap pools only. Raydium, non-SOL pairs and arbitrary AMM pools are unsupported.
+No build guarantees execution. A token can graduate after the response, and prices or balances can change before a transaction lands. Rebuild after a stage change; never retry indefinitely.

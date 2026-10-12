@@ -1,16 +1,18 @@
 import sdk from './sdk.cjs';
 const {PUMP_SDK,PUMP_PROGRAM_ID,bondingCurvePda,canonicalPumpPoolPda} = sdk.pump;
-import {ApiError,app,bodyJson,query} from './http.js';
+import {ApiError,app,bodyJson,query,VERSION} from './http.js';
 import {Rpc} from './rpc.js';
 import {tradeInput,publicKey} from './input.js';
 import {loadState,quoteState,instructions,owned,chooseRoute} from './protocol.js';
 import {compileTransaction} from './transaction.js';
 import {routerConfig,feeFor,feeDisclosure,FEE_BPS,FEE_RECIPIENT} from './fees.js';
+import {jupiterTrade,JUPITER_PROGRAM} from './jupiter.js';
 let active=0;
 function quoteResponse(state,input,quote){
   return {venue:state.venue,pool:state.venue,poolAddress:state.venue==='pump'?state.curveKey.toBase58():state.poolKey.toBase58(),mint:input.mint.toBase58(),action:input.action,tradeMode:quote.tradeMode,amountIn:input.amount.toString(),inputUnit:input.action==='buy'?'lamports':'raw_token_units',quotedOut:quote.quotedOut.toString(),expectedOut:quote.expectedOut.toString(),minOut:quote.minOut.toString(),outputUnit:input.action==='buy'?'raw_token_units':'lamports',tokenDecimals:state.mintAccount.decimals,slippageBps:input.slippageBps,contextSlot:state.slot,protocolFeesIncluded:true,quoteIsExecutionGuarantee:false,existingWsolAccountPreserved:!!state.swap?.userQuoteAccountInfo,outputAsset:input.action==='buy'?'token':state.swap?.userQuoteAccountInfo?'WSOL':'SOL'};
 }
 export async function trade(body,env,build,rpcFactory=e=>new Rpc(e)) {
+  if(env.TRADE_ENGINE==='jupiter')return jupiterTrade(body,env,build,rpcFactory);
   const input=tradeInput(body); // Invalid input must cause zero RPC calls.
   const routerProgram=routerConfig(env,build);
   if(active>=8)throw new ApiError(503,'BUSY','Build capacity is busy; retry later.');
@@ -53,6 +55,6 @@ export function createService(rpcFactory=e=>new Rpc(e)){
     let route;try{route=chooseRoute(c,'auto',!!poolInfo);}catch(e){if(e.code==='MIGRATION_PENDING')route='migration_pending';else throw e;}
     return {mint:mint.toBase58(),complete:c.complete,route,contextSlot:rpc.slot,virtualTokenReserves:c.virtualTokenReserves.toString(),virtualQuoteReserves:c.virtualQuoteReserves.toString(),realTokenReserves:c.realTokenReserves.toString(),realQuoteReserves:c.realQuoteReserves.toString(),tokenTotalSupply:c.tokenTotalSupply.toString(),isCashbackCoin:c.isCashbackCoin,isMayhemMode:c.isMayhemMode,quoteMint:c.quoteMint.toBase58(),poolValidated:false};
   }},
-  {path:'/api/capabilities',method:'GET',handle:({url,env})=>{query(url,[]);return {version:'0.1.0-preview',feeRouterProgramId:routerConfig(env)?.toBase58()??null,feeRecipient:FEE_RECIPIENT.toBase58(),releaseStage:'developer_preview',venues:['pump','pumpswap'],quoteAssets:['SOL'],unsignedOnly:true,serviceFeeBps:FEE_BPS,maxBuySol:'100',maxBodyBytes:8192,slippageBps:{default:100,min:1,max:5000},simulationDefault:true,raydium:false,eventHistory:false,sdkVersions:{pump:'4.0.0',pumpswap:'2.1.0'}};}}
+  {path:'/api/capabilities',method:'GET',handle:({url,env})=>{query(url,[]);return {version:VERSION,feeRouterProgramId:env.TRADE_ENGINE==='jupiter'?JUPITER_PROGRAM.toBase58():routerConfig(env)?.toBase58()??null,accessMode:env.ACCESS_MODE??'key',apiKeyRequired:env.ACCESS_MODE!=='public',routingProvider:env.TRADE_ENGINE==='jupiter'?'Jupiter Metis':'custom_router',feeRecipient:FEE_RECIPIENT.toBase58(),releaseStage:env.TRADE_ENGINE==='jupiter'?'public_beta':'developer_preview',venues:['pump','pumpswap'],quoteAssets:['SOL'],unsignedOnly:true,serviceFeeBps:FEE_BPS,maxBuySol:'100',maxBodyBytes:8192,slippageBps:{default:100,min:1,max:5000},simulationDefault:true,raydium:false,eventHistory:false,sdkVersions:{pump:'4.0.0',pumpswap:'2.1.0'}};}}
  ]);
 }

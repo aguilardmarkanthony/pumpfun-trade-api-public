@@ -1,4 +1,5 @@
-export const VERSION = '0.1.0-preview';
+import {isIP} from 'node:net';
+export const VERSION = '0.2.0-beta';
 export class ApiError extends Error {
   constructor(status, code, message) { super(message); this.status = status; this.code = code; }
 }
@@ -59,6 +60,27 @@ export async function bodyJson(request) {
   try { return JSON.parse(text); } catch { fail('Body must contain valid JSON.'); }
 }
 async function authenticate(request, env) {
+  if (env.ACCESS_MODE === 'public') {
+    const ip = request.headers.get('CF-Connecting-IP');
+    const version = isIP(ip ?? '');
+    if (!request.cf || !version || !env.PUBLIC_RATE_LIMITER?.limit || !env.PUBLIC_TOTAL_LIMITER?.limit) throw new ApiError(503, 'ACCESS_NOT_CONFIGURED', 'Public access requires the configured edge rate limiters.');
+    // Group IPv6 by /64 so rotating addresses in one subnet cannot evade limits.
+    let client = ip;
+    if (version === 6) {
+      const parts = ip.split('::');
+      const left = parts[0] ? parts[0].split(':') : [], right = parts[1] ? parts[1].split(':') : [];
+      const expanded = parts.length === 2 ? [...left, ...Array(8-left.length-right.length).fill('0'), ...right] : left;
+      client = expanded.slice(0,4).map(x => Number.parseInt(x,16).toString(16)).join(':') + '::/64';
+    }
+    let allowed;
+    try {
+      const perClient = await env.PUBLIC_RATE_LIMITER.limit({key: client});
+      allowed = perClient.success === true && (await env.PUBLIC_TOTAL_LIMITER.limit({key: 'all'})).success === true;
+    } catch { throw new ApiError(503, 'ACCESS_UNAVAILABLE', 'Access protection is temporarily unavailable.'); }
+    if (!allowed) throw new ApiError(429, 'RATE_LIMITED', 'Request limit reached. Retry after 60 seconds.');
+    return;
+  }
+  if (env.ACCESS_MODE && env.ACCESS_MODE !== 'key') throw new ApiError(503, 'ACCESS_NOT_CONFIGURED', 'Access mode is not configured.');
   if (typeof env.API_KEY !== 'string' || !/^[A-Za-z0-9._~+/-]{1,512}={0,2}$/.test(env.API_KEY)) throw new ApiError(503, 'AUTH_NOT_CONFIGURED', 'Authentication is not configured.');
   const authorization = request.headers.get('Authorization');
   const supplied = authorization && authorization.length <= 521 ? /^Bearer ([A-Za-z0-9._~+/-]{1,512}={0,2})$/i.exec(authorization)?.[1] : undefined;
@@ -88,6 +110,7 @@ export function app(name, routes) {
     } catch (error) {
       status = error instanceof ApiError ? error.status : 500;
       if (status === 401) extra['WWW-Authenticate'] = 'Bearer';
+      if (status === 429) extra['Retry-After'] = '60';
       payload = {error: {code: error instanceof ApiError ? error.code : 'INTERNAL_ERROR', message: error instanceof ApiError ? error.message : 'An unexpected error occurred.'}};
     }
     return new Response(JSON.stringify({...payload, requestId}), {status, headers: {'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer', 'X-Request-ID': requestId, ...extra}});

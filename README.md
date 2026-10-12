@@ -4,22 +4,51 @@ Buy and sell Pump tokens without guessing which market they use.
 
 [![Checks](https://github.com/aguilardmarkanthony/pumpfun-trade-api-public/actions/workflows/ci.yml/badge.svg)](https://github.com/aguilardmarkanthony/pumpfun-trade-api-public/actions/workflows/ci.yml)
 
-Give the API a token mint, your public wallet address and an amount. It reads the token's on-chain state, selects the bonding curve or canonical PumpSwap pool, and builds a transaction for your wallet to sign.
+Give the API a token mint, your public wallet address and an amount. It checks the token's on-chain stage, selects the bonding curve or canonical PumpSwap pool, and returns a simulated, unsigned transaction. Your wallet or bot signs and submits it.
 
-**Status: developer preview.** The API and fee-program source are available here. The fee program has not been deployed or verified against live Pump trades. Quotes work with an RPC connection; transaction builds stay disabled until an operator deploys and configures the program. This is a standalone API that you can host yourself.
+**Standalone public beta.** No marketplace subscription, signup or API key is required in public mode. The API uses Jupiter's existing on-chain router; you do not deploy a custom Solana program. This repository contains both the API and the client examples.
 
-## What you get
+## What it does
 
-- Automatic curve/PumpSwap selection, checked again by the fee program at execution.
-- A disclosed **0.1% fee**, calculated from the actual SOL spent or received by the trade.
-- Unsigned transactions, simulation, slippage limits and clear migration errors.
-- Existing wrapped-SOL accounts stay open. No private keys are accepted by the API.
+- Detects curve versus graduated tokens from chain state and checks again before returning a build.
+- Restricts trades to one verified Pump or canonical PumpSwap market.
+- Includes a transparent **0.1% service fee** in the same transaction as the trade.
+- Simulates every build, verifies the simulated fee transfer and refuses unsupported or changed routes.
+- Preserves existing wrapped-SOL accounts. Never asks for private keys.
 
-If a coin is moving between markets, the API asks you to rebuild. It does not guess a route. Prices, balances and network conditions can still cause a transaction to fail.
+Migration, price changes, blockhash expiry and network conditions can still cause a transaction to fail. If the venue changes, rebuild with `pool: "auto"`; an already signed transaction cannot switch venues by itself.
 
-## Try a quote
+## First request
 
-You need Node.js 22 or 24 and a Solana mainnet RPC URL.
+The endpoint and deployment verification are recorded in [Deployment](docs/DEPLOYMENT.md). With the API running locally:
+
+```sh
+curl http://localhost:8787/api/quote \
+  -H "Content-Type: application/json" \
+  --data '{"publicKey":"YOUR_PUBLIC_WALLET","mint":"TOKEN_MINT","action":"buy","amount":"0.01","pool":"auto","slippageBps":100}'
+```
+
+Replace both addresses. On Windows PowerShell, use `curl.exe` and put the command on one line. A quote does not trade or collect a fee.
+
+Change `/api/quote` to `/api/trade/local` to receive an unsigned base64 transaction. For a sell, use `"action":"sell"` and a raw token amount: `"1000000"` means one token with six decimals.
+
+[Step-by-step usage and JavaScript](docs/USAGE.md) � [API reference](docs/API.md) � [OpenAPI](docs/openapi.json)
+
+## Fees, without surprises
+
+| Item | What happens |
+| --- | --- |
+| Buy | 0.1% of the requested SOL input goes to the service; the remainder funds the swap. |
+| Sell | 0.1% of actual SOL proceeds is deducted before the trader receives the rest. |
+| Fee destination | `54pRN3VR97d6ELqu7uBeB5eu8nTKPnjPp2q2nJhb7CRv`, in wrapped SOL. |
+| First use | If the service's receiving account is missing, the first trader funds its creation. The build discloses the rent separately. |
+| Network and protocol costs | Separate from our fee; account rent may also be needed for the trader or protocol. |
+
+For a 1 SOL buy budget, the service fee is 0.001 SOL. Fees round down to whole lamports. Wrapped SOL represents SOL 1:1 and is controlled by the recipient wallet.
+
+The operator does not approve customer trades or pay an initial 0.005 SOL deposit. Customer-side signing remains necessary. If a trade fails, its service fee and account creation roll back; Solana may still charge the network fee. [Full fee details](docs/FEES.md).
+
+## Run it yourself
 
 ```sh
 git clone https://github.com/aguilardmarkanthony/pumpfun-trade-api-public.git
@@ -27,65 +56,27 @@ cd pumpfun-trade-api-public
 npm ci --ignore-scripts
 ```
 
-Create `.dev.vars` in the project folder. Use your own values; keep this file private.
+Create a private `.dev.vars` file:
 
 ```ini
 SOLANA_RPC_URL="https://YOUR_SOLANA_RPC"
-API_KEY="YOUR_API_KEY"
 ```
 
-Then run:
+Then run `npm run dev`. The Worker configuration enables public access with rate limits and the Jupiter engine. A self-hosted private instance can opt into bearer authentication; see [configuration](docs/DEPLOYMENT.md). No wallet keys belong in the server configuration.
 
-```sh
-npm run dev
-```
-
-Edit [examples/buy.json](examples/buy.json): replace the sample wallet and mint with your own public wallet and the token you want to inspect. The example asks to buy with **0.01 SOL**.
-
-```sh
-curl http://localhost:8787/api/quote \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  --data-binary @examples/buy.json
-```
-
-On Windows PowerShell, use `curl.exe` and put the command on one line.
-
-The useful response fields are `venue`, `expectedOut`, `minOut`, `estimatedServiceFeeLamports` and `feeAsset`. A quote does not place an order or collect a fee.
-
-## Build a buy or sell
-
-After the fee program is deployed, add its public address as `FEE_ROUTER_PROGRAM_ID` in `.dev.vars` and restart the API. Change `/api/quote` above to `/api/trade/local`. You will receive an unsigned base64 transaction; your own wallet handles approval, signing and submission.
-
-For a sell, use [examples/sell.json](examples/sell.json). Sell amounts are **raw token units**, not SOL. For a token with six decimals, `"1000000"` means one token.
-
-For JavaScript, start with [examples/client.mjs](examples/client.mjs). It includes `quoteTrade()` and `buildTrade()` and does not sign or submit anything. [The walkthrough](docs/USAGE.md) explains the response and common errors.
-
-## Where the fee goes
-
-Recipient: **`54pRN3VR97d6ELqu7uBeB5eu8nTKPnjPp2q2nJhb7CRv`**
-
-| Trade | Fee basis | Received by the fee wallet |
-| --- | --- | --- |
-| Curve buy | Actual SOL spent by the trade | SOL |
-| Curve sell | Actual SOL proceeds after protocol fees | SOL |
-| PumpSwap buy | Actual wrapped SOL spent by the trade | Wrapped SOL |
-| PumpSwap sell | Actual wrapped SOL proceeds after protocol fees | Wrapped SOL |
-
-At 1 SOL of trade value, the service fee is 0.001 SOL. Wrapped SOL represents SOL 1:1 and can be unwrapped by its owner. Fees round down to the nearest lamport. Network fees, protocol fees and account rent are separate.
-
-The trade and service fee are atomic: if either fails, both roll back. Solana can still charge network fees for a failed transaction. [Fee details](docs/FEES.md).
-
-## For maintainers
-
-[Deployment](docs/DEPLOYMENT.md) · [API reference](docs/API.md) · [OpenAPI](docs/openapi.json) · [Review and test limits](docs/REVIEW.md) · [Security](SECURITY.md)
+## Development and limits
 
 ```sh
 npm test
 npm run check
 npm run build:check
 npm audit --audit-level=moderate
-cargo test --manifest-path programs/fee-router/Cargo.toml --locked
 ```
 
-MIT licensed. Developers may fork and change the code, including its fee. Revenue comes from integrations that use this fee-bearing program; public source cannot force every fork to pay the original recipient. Pump.fun and Solana names describe compatibility, not affiliation.
+[Review and verification](docs/REVIEW.md) � [Security](SECURITY.md) � [License](LICENSE)
+
+This is an unsigned transaction builder, not an execution service. Newly created tokens may not yet be indexed by Jupiter. Raydium, non-SOL pairs and unsupported token extensions fail closed. Public beta request limits protect shared capacity; there is no uptime or execution guarantee.
+
+The earlier custom Rust router is retained as an **experimental alternative**, with its own [review record](docs/CUSTOM_ROUTER_REVIEW.md). The default service does not use it and does not require its deployment.
+
+MIT source can be forked and changed. We collect fees on successful transactions built with this fee configuration, not automatically from every copy of the code.

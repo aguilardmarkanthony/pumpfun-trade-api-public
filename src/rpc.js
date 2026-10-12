@@ -37,5 +37,5 @@ export class Rpc {
   }
   latestBlockhash(){return this.call('getLatestBlockhash',[{commitment:'confirmed',minContextSlot:this.slot}]);}
   fee(message){return this.call('getFeeForMessage',[message,{commitment:'confirmed',minContextSlot:this.slot}]);}
-  simulate(transaction){return this.call('simulateTransaction',[transaction,{encoding:'base64',sigVerify:false,replaceRecentBlockhash:false,commitment:'confirmed',minContextSlot:this.slot}]);}
+  simulate(transaction,addresses){return this.call('simulateTransaction',[transaction,{encoding:'base64',sigVerify:false,replaceRecentBlockhash:false,commitment:'confirmed',minContextSlot:this.slot,...(addresses?{accounts:{encoding:'base64',addresses},innerInstructions:true}:{})}]);}
 }
