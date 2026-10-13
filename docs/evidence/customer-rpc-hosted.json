@@ -1,0 +1,64 @@
+{
+  "checkedAt": "2026-10-13T15:52:38.574Z",
+  "host": "https://pump-trade-router.apilabph.workers.dev",
+  "sourceCommit": "b89e03818db469d7728ecc8c1b9876b1f48588a1",
+  "workerVersion": "daf764f4-bfec-42a1-8e8f-58776ce7f736",
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/",
+      "status": 200
+    },
+    {
+      "method": "HEAD",
+      "path": "/",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/health",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/capabilities",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/openapi.json",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/quote",
+      "status": 410
+    },
+    {
+      "method": "POST",
+      "path": "/api/trade",
+      "status": 410
+    },
+    {
+      "method": "POST",
+      "path": "/api/trade/local",
+      "status": 410
+    },
+    {
+      "method": "POST",
+      "path": "/api/market",
+      "status": 410
+    },
+    {
+      "method": "POST",
+      "path": "/api/approval",
+      "status": 410
+    }
+  ],
+  "mode": "customer",
+  "htmlMatchesReviewedSource": true,
+  "serviceFeeBps": 25,
+  "fundedTrades": false,
+  "chainRequests": false,
+  "limitations": "Readback verifies documentation and retired endpoint behavior. Zero upstream requests is established separately by mocked transport tests and handler review, not measured provider billing. No funded execution is proven."
+}

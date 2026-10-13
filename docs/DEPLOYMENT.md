@@ -1,5 +1,12 @@
 # Documentation hosting and customer RPC
 
+## Customer RPC deployment — October 13, 2026
+
+Deployed source `b89e03818db469d7728ecc8c1b9876b1f48588a1`, Worker version `daf764f4-bfec-42a1-8e8f-58776ce7f736`. [Hosted readback](evidence/customer-rpc-hosted.json) passed 10 checks: root HTML matched the reviewed source, health/capabilities reported customer mode, OpenAPI targeted localhost, and former chain POST routes returned 410 CUSTOMER_RPC_REQUIRED. The documentation host does not prepare trades. Follow [customer RPC setup](CUSTOMER-RPC.md).
+
+Local checks passed; see [review](REVIEW.md). No chain requests, signatures, broadcasts, contract deployment or funded trades were performed for this release. Existing settlement/funded-test requirements remain. Older release records below describe the previous hosted architecture.
+
+
 **Current mode:** the hosted Worker serves static documentation/metadata and returns 410 CUSTOMER_RPC_REQUIRED for former chain endpoints. Customers run [the local API or direct client](CUSTOMER-RPC.md) with their own RPC and routing credentials. The default hosted Worker needs neither an RPC secret nor a signing key.
 
 For documentation updates, run the repository checks and `npx wrangler deploy`; keep RPC_MODE=customer. The legacy Worker backend can be enabled only by an explicit RPC_MODE=self-hosted opt-in with the host owner’s own RPC. It is outside the APILabPH-hosted service.
