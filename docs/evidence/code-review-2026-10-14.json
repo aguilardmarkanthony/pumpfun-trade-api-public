@@ -37,7 +37,7 @@
       "logSha256": "c6e9b5904fc8aa7bdc8f81300006c899b5813e455ebc3aab902b31412fbf953b"
     }
   ],
-  "scope": "Internal source review and offline regression/contract-fixture checks. No live chain request, wallet access, transaction signing/broadcast, funded trade or Worker deployment.",
+  "scope": "Internal source review and offline regression/contract-fixture checks. No live chain request, access to user wallets, live transaction signing/broadcast, funded trade or Worker deployment. Tests may create signatures using synthetic fixture keys only.",
   "compatibility": "Unverified legacy curve sell variant 153 is now rejected; reviewed variants 187,191,192,193,194 pin the exact writable market position.",
   "customerRpcOnly": true,
   "rapidApiChanged": false,
