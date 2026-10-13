@@ -10,7 +10,7 @@ test('public documentation works without API credentials or RPC and has crawlabl
   assert.equal(response.status,200);
   assert.match(response.headers.get('content-type'),/text\/html/);
   const html=await response.text();
-  assert.match(html,/<title>Pumpfun Buy Sell API/);
+  assert.match(html,/<title>Pumpfun Buy and Sell API/);
   assert.ok(html.includes(`<link rel="canonical" href="${PUBLIC_ORIGIN}/">`));
   assert.match(html,/0\.25% service fee/);
   assert.match(html,/first trader funds its creation/);
@@ -52,12 +52,12 @@ test('crawler files expose only the public document, support HEAD and reject oth
   assert.deepEqual([...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(m=>m[1]),[PUBLIC_ORIGIN+'/']);
 });
 
-test('static page routing cannot bypass trading API authentication or public rate limits',async()=>{
-  const locked=await worker.fetch(new Request(PUBLIC_ORIGIN+'/api/trade/local',{method:'POST'}),{ACCESS_MODE:'key',API_KEY:'test-only'});
+test('legacy self-hosted static page routing cannot bypass authentication or rate limits',async()=>{
+  const locked=await worker.fetch(new Request(PUBLIC_ORIGIN+'/api/trade/local',{method:'POST'}),{RPC_MODE:'self-hosted',ACCESS_MODE:'key',API_KEY:'test-only'});
   assert.equal(locked.status,401);
   const request=new Request(PUBLIC_ORIGIN+'/api/trade/local',{method:'POST',headers:{'CF-Connecting-IP':'192.0.2.1'}});
   Object.defineProperty(request,'cf',{value:{colo:'TEST'}});
-  const response=await worker.fetch(request,{ACCESS_MODE:'public',PUBLIC_RATE_LIMITER:{limit:async()=>({success:false})},PUBLIC_TOTAL_LIMITER:{limit:async()=>({success:true})}});
+  const response=await worker.fetch(request,{RPC_MODE:'self-hosted',ACCESS_MODE:'public',PUBLIC_RATE_LIMITER:{limit:async()=>({success:false})},PUBLIC_TOTAL_LIMITER:{limit:async()=>({success:true})}});
   assert.equal(response.status,429);
   assert.equal(response.headers.get('retry-after'),'60');
   const health=await worker.fetch(new Request(PUBLIC_ORIGIN+'/api/health'));

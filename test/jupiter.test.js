@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {inspectExecution} from '../examples/execution-inspection.mjs';
-import {SystemProgram,VersionedTransaction} from '@solana/web3.js';
+import {PublicKey,SystemProgram,VersionedTransaction} from '@solana/web3.js';
 import {NATIVE_MINT,TOKEN_PROGRAM_ID,getAssociatedTokenAddressSync} from '@solana/spl-token';
 import {auditRoute,jupiterTrade,JUPITER_PROGRAM,composeRoute,resolveTables} from '../src/jupiter.js';
 import {tradeInput} from '../src/input.js';import {loadState} from '../src/protocol.js';import {FEE_ATA,FEE_RECIPIENT,feeFor} from '../src/fees.js';import {fixture,buy,sell,USER,OTHER,BLOCKHASH,tokenInfo} from './fixtures.js';import sdk from '../src/sdk.cjs';import bs58 from 'bs58';import {inspectPublicBuild} from '../examples/client.mjs';
@@ -103,4 +103,33 @@ test('graduation during simulation refuses an old-venue build',async()=>{
  const f=await sample(),graduated=await fixture({graduated:true}),original=f.rpc.simulate;
  f.rpc.simulate=async(...args)=>{const r=await original(...args);f.accounts.set(f.curveKey.toBase58(),graduated.accounts.get(f.curveKey.toBase58()));f.accounts.set(f.poolKey.toBase58(),graduated.accounts.get(f.poolKey.toBase58()));return r;};
  await assert.rejects(()=>jupiterTrade(f.body,{},true,()=>f.rpc,f.fetcher),e=>e.code==='VENUE_CHANGED');
+});
+
+test('customer RPC client builds both directions at both stages without an APILabPH request',async()=>{
+ const {createClient}=await import('../client/index.mjs');
+ const rpcUrl='https://customer-rpc.example/?key=customer-rpc-fixture';
+ for(const graduated of [false,true])for(const action of ['buy','sell']){
+  const f=await sample(graduated,action),seen=[];
+  const client=createClient({rpcUrl,jupiterApiKey:'customer-routing-fixture',fetchImpl:async(url,options)=>{
+   seen.push(String(url));
+   if(new URL(url).hostname==='api.jup.ag'){
+    assert.equal(options.headers['x-api-key'],'customer-routing-fixture');
+    assert.ok(!String(url).includes('customer-rpc-fixture'));
+    return f.fetcher();
+   }
+   assert.equal(url,rpcUrl);assert.equal(options.headers['x-api-key'],undefined);
+   const {id,method,params}=JSON.parse(options.body);let value;
+   if(method==='getMultipleAccounts')value=(await f.rpc.accounts(params[0].map(key=>new PublicKey(key)))).map(a=>a===null?null:{...a,owner:a.owner.toBase58(),data:[a.data.toString('base64'),'base64']});
+   else if(method==='getLatestBlockhash')value=await f.rpc.latestBlockhash();
+   else if(method==='getFeeForMessage')value=await f.rpc.fee(params[0]);
+   else if(method==='simulateTransaction')value=await f.rpc.simulate(params[0]);
+   else throw Error('Unexpected RPC method '+method);
+   return Response.json({jsonrpc:'2.0',id,result:{context:{slot:f.rpc.slot},value}});
+  }});
+  const result=await client.buildTrade({...f.body,maxServiceFeeBps:25});
+  assert.equal(result.simulation.status,'passed');assert.equal(result.submitted,false);assert.equal(result.serviceFeeBps,25);
+  assert.equal(result.feeRecipient,FEE_RECIPIENT.toBase58());
+  assert.ok(seen.some(url=>url===rpcUrl));assert.ok(seen.some(url=>new URL(url).hostname==='api.jup.ag'));
+  assert.ok(!JSON.stringify(result).includes('customer-rpc-fixture'));
+ }
 });

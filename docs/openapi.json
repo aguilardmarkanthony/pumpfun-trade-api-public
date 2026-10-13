@@ -3,7 +3,7 @@
   "info": {
     "title": "Pump Trade Router",
     "version": "0.3.1-beta",
-    "description": "Standalone unsigned Pump/PumpSwap trade API. Public access needs no API key. Automatic stage detection; 25 bps fee in WSOL through Jupiter Metis. First trader funds fee-account rent if missing. Builds require simulation. No execution guarantee."
+    "description": "Runs locally with the customer RPC for all chain reads and unsigned transaction preparation. Hosted chain endpoints have been retired with HTTP 410 CUSTOMER_RPC_REQUIRED. See docs/CUSTOMER-RPC.md. Standalone unsigned Pump/PumpSwap trade API. Public access needs no API key. Automatic stage detection; 25 bps fee in WSOL through Jupiter Metis. First trader funds fee-account rent if missing. Builds require simulation. No execution guarantee."
   },
   "externalDocs": {
     "description": "Public quickstart, routing and fees",
@@ -11,12 +11,8 @@
   },
   "servers": [
     {
-      "url": "https://pump-trade-router.apilabph.workers.dev",
-      "description": "Public beta; no API key"
-    },
-    {
-      "url": "http://localhost:8787",
-      "description": "Local development"
+      "url": "http://127.0.0.1:8787",
+      "description": "Customer-run local API; CUSTOMER_RPC_URL is required in its environment."
     }
   ],
   "paths": {
@@ -352,167 +348,6 @@
             }
           }
         }
-      }
-    },
-    "/api/curve/{mint}": {
-      "get": {
-        "operationId": "get_bonding_curve",
-        "summary": "Inspect curve completion and reserves",
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Curve"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Request or service error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Request or service error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Request or service error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "405": {
-            "description": "Request or service error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "408": {
-            "description": "Request or service error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Request or service error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "413": {
-            "description": "Request or service error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "415": {
-            "description": "Request or service error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Request or service error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Request or service error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Request or service error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "502": {
-            "description": "Request or service error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "Request or service error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "in": "path",
-            "name": "mint",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 32,
-              "maxLength": 44
-            },
-            "example": "6FhVPctYg363pQbs4iSvqyHe2cJzfsvFD96gePy6pump"
-          }
-        ]
       }
     },
     "/api/health": {
@@ -1542,5 +1377,6 @@
       }
     }
   },
-  "security": []
+  "security": [],
+  "x-rpc-mode": "customer"
 }

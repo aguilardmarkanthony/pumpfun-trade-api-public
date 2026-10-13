@@ -1,4 +1,12 @@
-# Deploy the standalone API
+# Documentation hosting and customer RPC
+
+**Current mode:** the hosted Worker serves static documentation/metadata and returns 410 CUSTOMER_RPC_REQUIRED for former chain endpoints. Customers run [the local API or direct client](CUSTOMER-RPC.md) with their own RPC and routing credentials. The default hosted Worker needs neither an RPC secret nor a signing key.
+
+For documentation updates, run the repository checks and `npx wrangler deploy`; keep RPC_MODE=customer. The legacy Worker backend can be enabled only by an explicit RPC_MODE=self-hosted opt-in with the host owner’s own RPC. It is outside the APILabPH-hosted service.
+
+## Historical deployment record and legacy self-hosting
+
+The records/settings below describe the previous hosted-builder releases. Their timing and hosted-RPC checks are historical, not current availability or a customer setup guide.
 
 The default configuration uses Cloudflare Workers and Jupiter's existing on-chain router. It does not deploy a new Solana program and needs no operator wallet signature. No fee-receiving-account deposit is required; see the first-trader rent disclosure in [Fees](FEES.md).
 
@@ -41,7 +49,7 @@ The tests observed fee transfers in simulation only. No test transaction was sig
 
 Public mode fails closed if edge metadata or either limiter is missing. The initial beta permits 10 requests per minute per IPv4 address or IPv6 /64, plus 30 per minute shared within a Cloudflare location. Cloudflare's limiter is approximate and local to each location, **not a global daily spending cap**. `429` includes `Retry-After: 60`. Health checks do not call RPC. Request logs are disabled.
 
-Use a suitable RPC plan and monitor provider usage as traffic grows. The upstream Jupiter build endpoint worked without an API key during verification; this is not a promise of permanent anonymous access or unlimited capacity. Configure an operator key if your upstream account or future service policy requires it.
+Use a suitable RPC plan and monitor provider usage as traffic grows. The upstream Jupiter build endpoint worked without an API key during verification; this is not a promise of permanent anonymous access or unlimited capacity. Legacy self-hosting requires the host owner’s own routing key when required by the upstream.
 
 ## Local development
 

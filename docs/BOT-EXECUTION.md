@@ -1,6 +1,8 @@
 # Automatic trading inside your bot
 
-Use `executeTrade()` when your bot should build, check, sign, submit and track a trade in one function call. Your signer runs on your machine. Our API receives public trade parameters, never a wallet key. An automated bot signer needs no operator approval; an interactive browser or hardware wallet can still ask its owner to approve a signature.
+Start the [local API with your own RPC](CUSTOMER-RPC.md) before using these examples. The public host serves documentation only.
+
+Use `executeTrade()` when your bot should build, check, sign, submit and track a trade in one function call. Your signer runs on your machine. Your local API receives public trade parameters, never a wallet key. An automated bot signer needs no operator approval; an interactive browser or hardware wallet can still ask its owner to approve a signature.
 
 The service fee stays **0.25%**. No customer API key is needed. This helper supports the default Jupiter route for SOL-paired Pump bonding curves and canonical graduated PumpSwap pools. It is a Node 22+ repository example, not a separately published npm package or a hosted signing endpoint.
 
@@ -13,10 +15,10 @@ import {Connection} from '@solana/web3.js';
 import {executeTrade} from './examples/execute-trade.mjs';
 import {FileTradeJournal} from './examples/file-journal.mjs';
 
-const connection = new Connection(process.env.SOLANA_RPC_URL, 'confirmed');
+const connection = new Connection(process.env.CUSTOMER_RPC_URL, 'confirmed');
 const journal = new FileTradeJournal('./.trade-journal');
 const settings = {
-  baseUrl: 'https://pump-trade-router.apilabph.workers.dev',
+  baseUrl: 'http://127.0.0.1:8787',
   connection,
   maxNetworkFeeLamports: '50000', // 0.00005 SOL, checked against the build estimate.
   maxFeeAccountSetupRentLamports: '2000000' // Allow up to 0.002 SOL for first-use fee-account rent.
@@ -96,6 +98,6 @@ This is not an independent audit of Jupiter's inner calls or a guarantee against
 
 This removes manual orchestration inside a bot; it does not guarantee subsecond confirmation. `timings.buildAndInspectMs`, `signMs`, `submitMs`, and `trackingMs` distinguish the stages. A timeout contributes to submission time and is not a measured acknowledgement. Recovered calls report tracking time only.
 
-Reuse a healthy RPC connection near your bot. Request the build when ready to sign, choose a bounded priority fee, and keep the public API's request limits in mind. Independent order IDs can execute concurrently; your strategy must manage wallet balances and positions.
+Reuse a healthy RPC connection near your bot. Request the build when ready to sign, choose a bounded priority fee, and respect your RPC and routing-provider limits. Independent order IDs can execute concurrently; your strategy must manage wallet balances and positions.
 
 No Jito tips, bundles, hosted wallets, token creation or WebSocket feed are added here. Those require separate implementation and validation. The current helper was tested with synthetic local signatures and mocked transports, plus existing unsigned builder fixtures. **No live trade was signed, submitted or used as a latency benchmark.** See [performance](PERFORMANCE.md) and [review](REVIEW.md).

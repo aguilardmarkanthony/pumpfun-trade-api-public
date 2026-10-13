@@ -4,13 +4,13 @@ Release 0.3.0-beta combines fee-account/router reads with the confirmed pricing 
 
 The customer's internet connection matters, but it is only one part of the path:
 
-`client -> this API -> RPC + Jupiter -> unsigned transaction -> customer signs -> submission RPC -> validators -> confirmation`
+`customer bot -> local builder -> customer RPC + Jupiter -> unsigned transaction -> local signer -> customer submission RPC -> validators -> confirmation`
 
 This API builds and simulates transactions. It does not sign them or submit them to validators. A bot running on a server uses that server's network connection; the operator's home connection is not involved in each trade.
 
 | Stage | Main sources of delay |
 | --- | --- |
-| Request and build | Client-to-API latency, RPC responses, Jupiter routing, simulation, rate limits and retries. |
+| Request and build | Local API overhead, RPC responses, Jupiter routing, simulation, rate limits and retries. |
 | Signing | Wallet confirmation for interactive users, or local signing by an authorized bot. |
 | Submission | The chosen RPC's location, load and ability to forward transactions to current validators. |
 | Inclusion | Network congestion, account contention, compute budget and priority fee. |
@@ -22,7 +22,7 @@ An RPC returning a transaction signature means it accepted the submission, not t
 
 Four hosted 0.3.0-beta unsigned builds on October 13, 2026 took 1,187 ms (curve buy), 689 ms (curve sell), 545 ms (PumpSwap buy) and 545 ms (PumpSwap sell), measured from the release machine. Each used seven RPC calls. These timings include API access, routing and simulation, not signing, broadcasting or confirmation. This small sample is not a latency guarantee, a percentile benchmark or a controlled comparison with the previous release. [Recorded results](verification-0.3.0-hosted.json).
 
-The verified optimization removes one serial RPC round trip. Measuring p50/p95 under representative load and across regions is still required before advertising sustained subsecond response times or comparing speed with competitors. Shared beta rate limits and upstream availability are material limits; no paid infrastructure upgrade was enabled.
+The verified optimization removes one serial RPC round trip. Measuring p50/p95 under representative load and across regions is still required before advertising sustained subsecond response times or comparing speed with competitors. Customer provider limits and upstream availability are material limits; no paid infrastructure upgrade was enabled.
 
 ## Client guidance
 

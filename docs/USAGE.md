@@ -1,5 +1,7 @@
 # Use the API
 
+Start the [local API with your own RPC](CUSTOMER-RPC.md) before using these examples. The public host serves documentation only.
+
 Public mode has no signup, subscription or API key. The operator does not approve customer trades. Your wallet or bot signs the returned transaction locally; the API never receives your private key.
 
 ## Buy
@@ -32,8 +34,8 @@ From this repository:
 import {buildTrade, quoteTrade} from './examples/client.mjs';
 
 const settings = {
-  baseUrl: 'https://pump-trade-router.apilabph.workers.dev',
-  rpcUrl: process.env.SOLANA_RPC_URL // Used to resolve transaction lookup tables.
+  baseUrl: 'http://127.0.0.1:8787',
+  rpcUrl: process.env.CUSTOMER_RPC_URL // Used to resolve transaction lookup tables.
 };
 const order = {
   publicKey: 'YOUR_PUBLIC_WALLET',
@@ -56,7 +58,7 @@ console.log('Unsigned transaction:', response.transaction);
 // This example does not sign or broadcast a transaction.
 ```
 
-For a private self-hosted server only, add `apiKey: process.env.API_KEY`. The public service does not require that setting. Never place infrastructure credentials in a public browser bundle.
+Run the local API first using [customer RPC setup](CUSTOMER-RPC.md). Keep RPC credentials in your local environment, not a public browser bundle.
 
 The sample sends a 25-bps fee ceiling by default and checks the signer, fee destination, encoded rate, amount, slippage and supported router instruction. It also compares the response's expected/minimum output with the encoded transaction bounds and resolves lookup tables from chain. These are basic checks, not a complete independent audit of every instruction. Use a trusted endpoint and inspect the whole transaction before approving it.
 

@@ -1,14 +1,15 @@
 # API reference
 
-Standalone unsigned Pump/PumpSwap trading API, version 0.3.1-beta. Default public access requires **no API key**. All `/api/*` responses are JSON with a request ID. Rate limits return HTTP 429 with `Retry-After: 60`.
+**Current RPC mode:** run the [customer RPC setup](CUSTOMER-RPC.md) first. Examples target your local API at http://127.0.0.1:8787, and your RPC performs all blockchain work. The public host is documentation only.
+
+Standalone unsigned Pump/PumpSwap trading API, version 0.3.1-beta. Default public access requires **no API key**. The loopback REST adapter uses your configured RPC and allows two concurrent preparation requests. Provider rate limits are separate.
 
 The root `/` serves public HTML documentation. `/robots.txt` and `/sitemap.xml` support search discovery. These static routes accept GET and HEAD, do not use RPC and do not consume the API's application rate limits. They are separate from the JSON API contract below.
 
 | Method and route | Purpose |
 | --- | --- |
-| `GET /api/health` | Liveness and version; no upstream calls. |
-| `GET /api/capabilities` | Access mode, router, fee policy and supported venues. |
-| `GET /api/curve/{mint}` | Curve state and preliminary stage; it does not fully validate a pool. |
+| `GET /api/health` | Local process liveness; no upstream calls. |
+| `GET /api/capabilities` | Local RPC mode and fixed fee policy; no upstream calls. |
 | `POST /api/quote` | Automatic route and quote; no signing, simulation or fee payment. |
 | `POST /api/trade/local` | Validated and simulated unsigned transaction. |
 
@@ -24,4 +25,4 @@ The fee is fixed at 25 bps to `54pRN3VR97d6ELqu7uBeB5eu8nTKPnjPp2q2nJhb7CRv`. It
 
 See [usage and examples](USAGE.md), [fees](FEES.md), [deployment](DEPLOYMENT.md) and the machine-readable [OpenAPI schema](openapi.json).
 
-Private self-hosted instances may set `ACCESS_MODE=key` and require `Authorization: Bearer YOUR_API_KEY`. Customers do not need this header on a public instance. Neither mode accepts private wallet keys or submits trades.
+No APILabPH API key is used by the loopback API. Its Host/Origin checks reject foreign browser origins; keep it bound to the local machine. It accepts no wallet keys and never submits trades.

@@ -2,7 +2,7 @@ import {PublicKey} from '@solana/web3.js';
 import {ApiError,boundedText} from './http.js';
 export class Rpc {
   constructor(env={}, fetcher=fetch) {
-    this.url=env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
+    this.url=env.SOLANA_RPC_URL;
     let url; try {url=new URL(this.url);} catch {throw new ApiError(503,'RPC_NOT_CONFIGURED','RPC configuration is invalid.');}
     if(url.protocol!=='https:' || url.username || url.password) throw new ApiError(503,'RPC_NOT_CONFIGURED','Configure an HTTPS RPC URL.');
     this.fetcher=fetcher.bind(globalThis);this.slot=0;this.calls=0;this.started=Date.now();

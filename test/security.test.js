@@ -21,17 +21,17 @@ test('pure bigint adapter round trips widths and rejects overflow',()=>{
  assert.throws(()=>adapter.toBufferBE(-1n,8));assert.throws(()=>adapter.toBufferLE(256n,1));assert.throws(()=>adapter.toBufferBE(1n,0));assert.throws(()=>adapter.toBufferBE(0n,1000000));
 });
 test('RPC restricts methods and rejects HTTP redirects without following',async()=>{
- let calls=0;const rpc=new Rpc({},async(url,options)=>{calls++;assert.equal(options.redirect,'manual');return new Response('',{status:302,headers:{Location:'https://untrusted.example'}});});
+ let calls=0;const rpc=new Rpc({SOLANA_RPC_URL:'https://customer.invalid'},async(url,options)=>{calls++;assert.equal(options.redirect,'manual');return new Response('',{status:302,headers:{Location:'https://untrusted.example'}});});
  await assert.rejects(()=>rpc.call('sendTransaction',[]),/Forbidden/);assert.equal(calls,0);
  await assert.rejects(()=>rpc.accounts([MINT]),e=>e.code==='RPC_UNAVAILABLE');assert.equal(calls,1);
 });
 test('RPC fetch uses the global receiver required by Workers',async()=>{
- const rpc=new Rpc({},async function(){assert.equal(this,globalThis);return new Response(JSON.stringify({jsonrpc:'2.0',id:1,result:{context:{slot:1},value:[null]}}));});
+ const rpc=new Rpc({SOLANA_RPC_URL:'https://customer.invalid'},async function(){assert.equal(this,globalThis);return new Response(JSON.stringify({jsonrpc:'2.0',id:1,result:{context:{slot:1},value:[null]}}));});
  assert.deepEqual(await rpc.accounts([MINT]),[null]);
 });
 test('RPC validates response IDs, slot regression, error and response size',async()=>{
  for(const body of [{jsonrpc:'2.0',id:2,result:{context:{slot:1},value:[]}}, {jsonrpc:'2.0',id:1,result:{context:{slot:0},value:[]}}, {jsonrpc:'2.0',id:1,error:{code:-1}}, 'x'.repeat(1048577)]){
-  const rpc=new Rpc({},async()=>new Response(typeof body==='string'?body:JSON.stringify(body)));rpc.slot=1;
+  const rpc=new Rpc({SOLANA_RPC_URL:'https://customer.invalid'},async()=>new Response(typeof body==='string'?body:JSON.stringify(body)));rpc.slot=1;
   await assert.rejects(()=>rpc.accounts([MINT]),e=>e.code==='RPC_UNAVAILABLE');
  }
 });

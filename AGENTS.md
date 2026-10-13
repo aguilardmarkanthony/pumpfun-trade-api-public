@@ -11,3 +11,5 @@
 - Public mode needs no customer API key or operator trade approvals; edge rate limits must be present. Optional bearer authentication is for private self-hosting only.
 - The default uses Jupiter's deployed router and requires successful real-protocol unsigned simulations. The optional custom Rust program remains an undeployed developer preview. Never advertise earned commissions from simulations, or guarantee execution.
 - Do not commit secrets, deployment keypairs, private history, operational snapshots or wallet payload logs.
+
+The owner requires customer-owned RPC for all application blockchain work. Customer mode runs reads/builds/simulations in the customer process; hosted chain endpoints must perform zero RPC calls. Require an explicit customer RPC with no implicit fallback. Keep the local signer and any routing credentials with the customer. Existing RapidAPI services are outside this migration.

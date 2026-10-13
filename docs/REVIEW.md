@@ -1,5 +1,14 @@
 # Review record - October 13, 2026
 
+## Customer RPC migration — October 13, 2026
+
+The customer process now performs chain reads, transaction preparation and simulation through its explicit RPC. The hosted Worker defaults to documentation-only mode and returns HTTP 410 CUSTOMER_RPC_REQUIRED for former chain operations, even if old operator secrets remain. Local signing/submission stays with the bot. The fee rate/recipient and protocol validation are unchanged.
+
+Review fixed implicit public-RPC fallback, stale hosted quickstarts, missing-RPC error handling and browser chain forwarding. 98 automated tests, syntax/specification checks, Worker dry-run and dependency audit passed. [Recorded local evidence](evidence/customer-rpc-local-review.json). No funded trade, settlement deployment or live chain request was performed for this migration.
+
+Customers must follow [the migration guide](CUSTOMER-RPC.md). EVM settlement and funded-trade requirements remain. Code-only website previews remain local. Deployment/readback evidence is recorded separately.
+
+
 ## Local bot execution review
 
 The owner chose signing inside each user's bot. Added `executeTrade`, read-only `trackTrade`, strict pre-sign inspection and a file journal as Node client examples. No server endpoint signs or broadcasts; the hosted runtime and OpenAPI contract remain 0.3.1-beta. The fee remains 25 bps to the existing recipient.

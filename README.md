@@ -1,16 +1,18 @@
 # Pumpfun Buy and Sell API - Pump Trade Router
 
+**Customer RPC mode:** run this API or import its client inside your own bot. All application blockchain RPC work uses your endpoint. Start with [the customer RPC guide](docs/CUSTOMER-RPC.md). The public site serves documentation; hosted trade/quote/market endpoints are retired in this release. Existing funded-test and settlement requirements remain.
+
 An independent Pump.fun (Pumpfun) buy and sell API for Solana. Build trades for bonding-curve tokens and graduated PumpSwap tokens without guessing which market they use.
 
 [![Checks](https://github.com/apilabph/pumpfun-trade-api-public/actions/workflows/ci.yml/badge.svg)](https://github.com/apilabph/pumpfun-trade-api-public/actions/workflows/ci.yml)
 
 Give the API a token mint, your public wallet address and an amount. It checks the token's on-chain stage, selects the bonding curve or canonical PumpSwap pool, and returns a simulated, unsigned transaction. Your wallet or bot signs and submits it.
 
-**Standalone public beta.** No marketplace subscription, signup or API key is required in public mode. The API uses Jupiter's existing on-chain router; you do not deploy a custom Solana program. This repository contains both the API and the client examples.
+**Standalone public beta.** No marketplace subscription, signup or APILabPH API key is required. Run preparation locally with your own RPC and any required Jupiter routing credential. The API uses Jupiter's existing on-chain router; you do not deploy a custom Solana program. This repository contains both the API and the client examples.
 
 Pump Trade Router is maintained by API Lab PH and is not an official Pump.fun or PumpSwap product.
 
-[Read the public quickstart](https://pump-trade-router.apilabph.workers.dev/) for curl examples, buying and selling, routing behavior and fees.
+[Read the public quickstart](https://pump-trade-router.apilabph.workers.dev/) for the customer RPC guide, buying and selling, routing behavior and fees.
 
 ## What it does
 
@@ -35,10 +37,10 @@ Migration, price changes, blockhash expiry and network conditions can still caus
 
 ## First request
 
-Public endpoint: **https://pump-trade-router.apilabph.workers.dev**. No API key is needed. [Deployment and verification](docs/DEPLOYMENT.md).
+First follow [customer RPC setup](docs/CUSTOMER-RPC.md). Run `npm run api:local`; the example below targets your local API, not the documentation host.
 
 ```sh
-curl https://pump-trade-router.apilabph.workers.dev/api/quote \
+curl http://127.0.0.1:8787/api/quote \
   -H "Content-Type: application/json" \
   --data '{"publicKey":"YOUR_PUBLIC_WALLET","mint":"TOKEN_MINT","action":"buy","amount":"0.01","pool":"auto","slippageBps":100,"maxServiceFeeBps":25}'
 ```
@@ -51,7 +53,7 @@ Change `/api/quote` to `/api/trade/local` to receive an unsigned base64 transact
 
 ## Automate it in your bot
 
-Use [`executeTrade()`](docs/BOT-EXECUTION.md) to build, inspect, sign locally, submit and track a trade in one JavaScript call. Your bot keeps its keys. A persistent trade ID prevents the helper from creating another trade when a submission reply is lost. The guide includes buy/sell examples, cost limits and restart recovery. This is local bot execution; the hosted API still returns unsigned transactions.
+Use [`executeTrade()`](docs/BOT-EXECUTION.md) to build, inspect, sign locally, submit and track a trade in one JavaScript call. Your bot keeps its keys. A persistent trade ID prevents the helper from creating another trade when a submission reply is lost. The guide includes buy/sell examples, cost limits and restart recovery. This is local bot execution; the local API returns unsigned transactions.
 
 ## Trading costs
 
@@ -72,10 +74,10 @@ npm ci --ignore-scripts
 Create a private `.dev.vars` file:
 
 ```ini
-SOLANA_RPC_URL="https://YOUR_SOLANA_RPC"
+CUSTOMER_RPC_URL="https://YOUR_SOLANA_RPC"
 ```
 
-Then run `npm run dev`. The Worker configuration enables public access with rate limits and the Jupiter engine. A self-hosted private instance can opt into bearer authentication; see [configuration](docs/DEPLOYMENT.md). No wallet keys belong in the server configuration.
+Then run `npm run api:local`. Supply your own Jupiter routing key if required; see [customer RPC setup](docs/CUSTOMER-RPC.md). All reads, simulation, submission and confirmation use your RPC. No wallet keys belong in the API configuration.
 
 ## Development and limits
 
@@ -88,7 +90,7 @@ npm audit --audit-level=moderate
 
 [Review and verification](docs/REVIEW.md) - [Security](SECURITY.md) - [License](LICENSE)
 
-The hosted API is an unsigned transaction builder. The optional client helper executes inside the user's bot. Newly created tokens may not yet be indexed by Jupiter. Raydium, non-SOL pairs and unsupported token extensions fail closed. Public beta request limits protect shared capacity; there is no uptime or execution guarantee.
+The local API is an unsigned transaction builder; the hosted Worker serves documentation only. The optional client helper executes inside the user's bot. Newly created tokens may not yet be indexed by Jupiter. Raydium, non-SOL pairs and unsupported token extensions fail closed. Your RPC and routing-provider limits apply; there is no uptime or execution guarantee.
 
 The earlier custom Rust router is retained as an **experimental alternative**, with its own [review record](docs/CUSTOM_ROUTER_REVIEW.md). The default service does not use it and does not require its deployment.
 

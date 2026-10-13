@@ -5,7 +5,7 @@
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
   "observability": {"enabled": false},
-  "vars": {"ACCESS_MODE":"public", "TRADE_ENGINE":"jupiter"},
+  "vars": {"RPC_MODE":"customer", "ACCESS_MODE":"public", "TRADE_ENGINE":"jupiter"},
   "ratelimits": [
     {"name":"PUBLIC_RATE_LIMITER", "namespace_id":"2026101301", "simple":{"limit":10,"period":60}},
     {"name":"PUBLIC_TOTAL_LIMITER", "namespace_id":"2026101302", "simple":{"limit":30,"period":60}}

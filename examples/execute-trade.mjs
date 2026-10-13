@@ -14,7 +14,7 @@ function integer(value,min,max,label){if(!Number.isSafeInteger(value)||value<min
 function lamports(value,label){if(typeof value!=='string'||!/^\d{1,20}$/.test(value))throw new Error(`Invalid ${label}. Use a lamport string.`);return BigInt(value);}
 function options(settings){
   if(settings.expectedRouterProgramId)throw new Error('Automatic execution supports the default Jupiter engine only.');
-  const connection=settings.connection??new Connection(settings.rpcUrl??'https://api.mainnet-beta.solana.com','confirmed');
+  const connection=settings.connection??new Connection(settings.rpcUrl??(()=>{throw new Error('Provide your own rpcUrl or connection.');})(),'confirmed');
   return {connection,rpcTimeoutMs:integer(settings.rpcTimeoutMs??10000,1,30000,'RPC timeout'),
     signTimeoutMs:integer(settings.signTimeoutMs??30000,1,120000,'signing timeout'),
     confirmationTimeoutMs:integer(settings.confirmationTimeoutMs??45000,1,120000,'confirmation timeout'),

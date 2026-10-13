@@ -13,7 +13,8 @@
     "test": "node --test test/*.test.js",
     "check": "node scripts/check.mjs",
     "build:check": "wrangler deploy --dry-run",
-    "dev": "wrangler dev"
+    "dev": "wrangler dev",
+    "api:local": "node --env-file=.dev.vars client/server.mjs"
   },
   "dependencies": {
     "@pump-fun/pump-sdk": "4.0.0",
