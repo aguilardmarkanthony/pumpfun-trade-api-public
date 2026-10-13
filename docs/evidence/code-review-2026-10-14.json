@@ -1,0 +1,46 @@
+{
+  "reviewDate": "2026-10-14",
+  "checkedAt": "2026-10-13T16:39:09.317Z",
+  "repository": "https://github.com/apilabph/pumpfun-trade-api-public",
+  "baseCommit": "fee8c0fbc4152f6599f8c6117c447ba2770f5e21",
+  "node": "v24.18.0",
+  "testCount": 106,
+  "results": [
+    {
+      "command": "npm test",
+      "exitCode": 0,
+      "durationMs": 4715,
+      "logSha256": "65619b8113d9c18a52d904a1cdee1f40d0e8a8c5e6a055be6f3c942e4dc41d22"
+    },
+    {
+      "command": "npm run check",
+      "exitCode": 0,
+      "durationMs": 4623,
+      "logSha256": "1cd8fc284151236f93615064eb6e4d77b6f6ba9b1995e3dd8f32487787b46360"
+    },
+    {
+      "command": "npm run build:check",
+      "exitCode": 0,
+      "durationMs": 4317,
+      "logSha256": "595615cee38685a240af43a0984f8df2e12756c43366a14d59f93f0cfe2d3d19"
+    },
+    {
+      "command": "npm audit --audit-level=moderate",
+      "exitCode": 0,
+      "durationMs": 1562,
+      "logSha256": "6d8c5c8f3d7684adb070417bd608d01ae90aa3dc26a65af03ffda4955f38d9a3"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "durationMs": 123,
+      "logSha256": "c6e9b5904fc8aa7bdc8f81300006c899b5813e455ebc3aab902b31412fbf953b"
+    }
+  ],
+  "scope": "Internal source review and offline regression/contract-fixture checks. No live chain request, wallet access, transaction signing/broadcast, funded trade or Worker deployment.",
+  "compatibility": "Unverified legacy curve sell variant 153 is now rejected; reviewed variants 187,191,192,193,194 pin the exact writable market position.",
+  "customerRpcOnly": true,
+  "rapidApiChanged": false,
+  "contractBytecodeChanged": false,
+  "fundedTradingVerified": false
+}

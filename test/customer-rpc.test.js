@@ -60,3 +60,14 @@ test('local REST binds requests to customer configuration, rejects foreign origi
   assert.equal(calls,0);
  }finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
 });
+
+test('mint validation refuses executable accounts before quoting or building',async()=>{
+ const {decodeMint}=await import('../src/protocol.js');
+ const {PublicKey}=await import('@solana/web3.js');
+ const {MintLayout,TOKEN_PROGRAM_ID}=await import('@solana/spl-token');
+ const mint=new PublicKey('6nTDSkevucpPhzhhDa6n3Gpye92HYuVq2ZiK4Xs8pump'),data=Buffer.alloc(MintLayout.span);
+ MintLayout.encode({mintAuthorityOption:0,mintAuthority:PublicKey.default,supply:1000000n,decimals:6,isInitialized:true,freezeAuthorityOption:0,freezeAuthority:PublicKey.default},data);
+ const info={data,owner:TOKEN_PROGRAM_ID,lamports:1000000,executable:false};
+ assert.equal(decodeMint(mint,info).isInitialized,true);
+ assert.throws(()=>decodeMint(mint,{...info,executable:true}),e=>e.code==='INVALID_CHAIN_STATE');
+});

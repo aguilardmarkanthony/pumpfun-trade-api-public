@@ -10,8 +10,9 @@ async function sample(graduated=false,action='buy',existingWsol=false){
  const state=await loadState(f.rpc,input),isBuy=action==='buy',src=isBuy?NATIVE_MINT:input.mint,dst=isBuy?input.mint:NATIVE_MINT;
  const output=isBuy?100001n:99851n,min=(output*9900n+9999n)/10000n;
  const addresses=[USER,getAssociatedTokenAddressSync(src,USER),getAssociatedTokenAddressSync(dst,USER),src,dst,TOKEN_PROGRAM_ID,TOKEN_PROGRAM_ID,JUPITER_PROGRAM,new (USER.constructor)('D8cy77BBepLMngZx6ZukaTff5hCt1HrWyKk3Hnd9oitf'),JUPITER_PROGRAM,FEE_ATA,graduated?sdk.swap.PUMP_AMM_PROGRAM_ID:sdk.pump.PUMP_PROGRAM_ID,graduated?state.poolKey:state.curveKey,OTHER,SystemProgram.programId];
+ if(!graduated){addresses[12]=OTHER;while(addresses.length<=17)addresses.push(OTHER);addresses[17]=state.curveKey;}
  const variant=graduated?(isBuy?193:194):(isBuy?191:192),fields=variant===191?2:1,data=Buffer.alloc(39+fields);Buffer.from([187,100,250,204,49,196,175,20]).copy(data);data.writeBigUInt64LE(input.amount,8);data.writeBigUInt64LE(output,16);data.writeUInt16LE(100,24);data.writeUInt16LE(25,26);data.writeUInt32LE(1,30);data[34]=variant;if(variant===191)data[35]=1;data.writeUInt16LE(10000,35+fields);data[38+fields]=1;
- const route={transactionVersion:0,swapMode:'ExactIn',inputMint:src.toBase58(),outputMint:dst.toBase58(),inAmount:input.amount.toString(),outAmount:String(output),otherAmountThreshold:String(min),slippageBps:100,routePlan:[{percent:100,bps:10000,swapInfo:{ammKey:(graduated?state.poolKey:state.curveKey).toBase58(),label:graduated?'Pump.fun Amm':'Pump.fun',inputMint:src.toBase58(),outputMint:dst.toBase58(),inAmount:input.amount.toString(),outAmount:String(isBuy?output:100101n)}}],swapInstruction:{programId:JUPITER_PROGRAM.toBase58(),accounts:addresses.map((p,i)=>({pubkey:p.toBase58(),isSigner:i===0,isWritable:[1,2,10,12].includes(i)})),data:data.toString('base64')},otherInstructions:[],tipInstruction:null,addressesByLookupTableAddress:{}};
+ const route={transactionVersion:0,swapMode:'ExactIn',inputMint:src.toBase58(),outputMint:dst.toBase58(),inAmount:input.amount.toString(),outAmount:String(output),otherAmountThreshold:String(min),slippageBps:100,routePlan:[{percent:100,bps:10000,swapInfo:{ammKey:(graduated?state.poolKey:state.curveKey).toBase58(),label:graduated?'Pump.fun Amm':'Pump.fun',inputMint:src.toBase58(),outputMint:dst.toBase58(),inAmount:input.amount.toString(),outAmount:String(isBuy?output:100101n)}}],swapInstruction:{programId:JUPITER_PROGRAM.toBase58(),accounts:addresses.map((p,i)=>({pubkey:p.toBase58(),isSigner:i===0,isWritable:[1,2,10].includes(i)||i===(graduated?12:17)})),data:data.toString('base64')},otherInstructions:[],tipInstruction:null,addressesByLookupTableAddress:{}};
  f.rpc.simulate=async tx=>{
  const fee=isBuy?feeFor(input.amount):250n,account=tokenInfo(NATIVE_MINT,FEE_RECIPIENT,fee);
  const message=VersionedTransaction.deserialize(Buffer.from(tx,'base64')).message;
@@ -95,7 +96,7 @@ test('sell simulation verifies 0.25% of the actual swap event output',async()=>{
  await assert.rejects(()=>jupiterTrade(f.body,{},true,()=>f.rpc,f.fetcher),e=>e.code==='ROUTE_REJECTED');
 });
 test('curve V6 disables partial fills and refuses cashback claims',async()=>{
- const f=await sample(),r=structuredClone(f.route),data=Buffer.from(r.swapInstruction.data,'base64');data[34]=187;data[35]=0;data[36]=1;r.swapInstruction.data=data.toString('base64');
+ const f=await sample(),r=structuredClone(f.route),data=Buffer.from(r.swapInstruction.data,'base64');data[34]=187;data[35]=0;data[36]=1;const pool=r.swapInstruction.accounts[17];r.swapInstruction.accounts[17]={...pool,pubkey:OTHER.toBase58()};while(r.swapInstruction.accounts.length<=22)r.swapInstruction.accounts.push({...pool,pubkey:OTHER.toBase58()});r.swapInstruction.accounts[22]=pool;r.swapInstruction.data=data.toString('base64');
  const audited=auditRoute(r,f.input,f.state);assert.equal(audited.instruction.data[36],0);
  data[35]=1;r.swapInstruction.data=data.toString('base64');assert.throws(()=>auditRoute(r,f.input,f.state),e=>e.code==='ROUTE_REJECTED');
 });
@@ -132,4 +133,32 @@ test('customer RPC client builds both directions at both stages without an APILa
   assert.ok(seen.some(url=>url===rpcUrl));assert.ok(seen.some(url=>new URL(url).hostname==='api.jup.ag'));
   assert.ok(!JSON.stringify(result).includes('customer-rpc-fixture'));
  }
+});
+
+for(const graduated of [false,true])for(const action of ['buy','sell'])test('route rejects an expected market appended outside the '+(graduated?'pool':'curve')+' account position / '+action,async()=>{
+ const f=await sample(graduated,action),route=structuredClone(f.route),index=graduated?12:17;
+ route.swapInstruction.accounts.push({...route.swapInstruction.accounts[index]});
+ route.swapInstruction.accounts[index].pubkey=OTHER.toBase58();
+ assert.throws(()=>auditRoute(route,f.input,f.state),e=>e.code==='ROUTE_REJECTED');
+});
+for(const graduated of [false,true])test('both local inspectors reject a misplaced '+(graduated?'pool':'curve')+' account before signing',async()=>{
+ const f=await sample(graduated),audited=auditRoute(f.route,f.input,f.state);
+ const result=await jupiterTrade(f.body,{},true,()=>f.rpc,f.fetcher),index=graduated?12:17;
+ audited.instruction.keys.push({...audited.instruction.keys[index]});
+ audited.instruction.keys[index]={...audited.instruction.keys[index],pubkey:OTHER};
+ const altered=composeRoute(audited,f.input,f.state,false,false,BLOCKHASH,[]);
+ const response={...result,transaction:altered.transaction};
+ await assert.rejects(()=>inspectPublicBuild(response,f.body,{}),/market|protocol/);
+ await assert.rejects(()=>inspectExecution(response,f.body,{getAccountInfo:async()=>null}),/market|protocol/);
+});
+
+test('pinned market positions match saved public route layout evidence',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const {PUMP_MARKET_INDEX}=await import('../src/jupiter.js');
+ const evidence=JSON.parse(await readFile(new URL('./fixtures/jupiter-market-layouts.json',import.meta.url),'utf8'));
+ for(const layout of evidence.layouts)assert.equal(PUMP_MARKET_INDEX[layout.variant],layout.marketIndex);
+ assert.equal(PUMP_MARKET_INDEX[153],undefined,'Unverified legacy sell layout must not be guessed');
+ const f=await sample(false,'sell'),data=Buffer.from(f.route.swapInstruction.data,'base64');
+ data[34]=153;f.route.swapInstruction.data=data.toString('base64');
+ assert.throws(()=>auditRoute(f.route,f.input,f.state),e=>e.code==='ROUTE_REJECTED');
 });

@@ -12,6 +12,9 @@ export const JUPITER_PROGRAM=new PublicKey('JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5Q
 const EVENT_AUTHORITY=new PublicKey('D8cy77BBepLMngZx6ZukaTff5hCt1HrWyKk3Hnd9oitf');
 const DISCRIMINATOR=Buffer.from([187,100,250,204,49,196,175,20]);
 const COMPUTE_UNITS=400000;
+// Exact remaining-account positions from the saved route layouts. Merely
+// appending the expected market must not validate a different active pool.
+export const PUMP_MARKET_INDEX=Object.freeze({187:22,191:17,192:17,193:12,194:12});
 const reject=()=>{throw new ApiError(502,'ROUTE_REJECTED','The upstream route did not pass transaction safety checks. No transaction was submitted.');};
 function uint(value){if(typeof value!=='string'||!/^\d{1,20}$/.test(value)||BigInt(value)>U64_MAX)reject();return BigInt(value);}
 const key=value=>{try{return new PublicKey(value);}catch{reject();}};
@@ -44,7 +47,7 @@ export function auditRoute(route,input,state){
   const raw=route.swapInstruction;
   if(!raw||!same(raw.programId,JUPITER_PROGRAM)||!Array.isArray(raw.accounts)||raw.accounts.length<15||raw.accounts.length>64||typeof raw.data!=='string'||raw.data.length>128||!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(raw.data))reject();
   const data=Buffer.from(raw.data,'base64');
-  const variants=state.venue==='pump'?(buy?[187,191]:[153,192]):(buy?[193]:[194]);
+  const variants=state.venue==='pump'?(buy?[187,191]:[192]):(buy?[193]:[194]);
   const variant=data[34],fields=[187,191].includes(variant)?2:1;
   if(!variants.includes(variant)||data.length!==39+fields||!data.subarray(0,8).equals(DISCRIMINATOR)||data.readBigUInt64LE(8)!==input.amount||data.readBigUInt64LE(16)!==output||data.readUInt16LE(24)!==input.slippageBps||data.readUInt16LE(26)!==FEE_BPS||data.readUInt16LE(28)!==0||data.readUInt32LE(30)!==1)reject();
   const partialOffset=variant===191?35:variant===187?36:null;
@@ -55,7 +58,8 @@ export function auditRoute(route,input,state){
   if(partialOffset!==null)data[partialOffset]=0;
   const accounts=raw.accounts.map(a=>{if(typeof a.isSigner!=='boolean'||typeof a.isWritable!=='boolean')reject();const pubkey=key(a.pubkey);if(a.isSigner&&!pubkey.equals(input.user))reject();return {...a,pubkey};});
   const expected=[input.user,source,destination,sourceMint,destMint,sourceProgram,destProgram,JUPITER_PROGRAM,EVENT_AUTHORITY,JUPITER_PROGRAM,FEE_ATA,state.venue==='pump'?sdk.pump.PUMP_PROGRAM_ID:sdk.swap.PUMP_AMM_PROGRAM_ID];
-  if(expected.some((p,i)=>!accounts[i].pubkey.equals(p))||!accounts[0].isSigner||![1,2,10].every(i=>accounts[i].isWritable)||!accounts.slice(12).some(a=>a.pubkey.equals(market)))reject();
+  const marketAccount=accounts[PUMP_MARKET_INDEX[variant]];
+  if(expected.some((p,i)=>!accounts[i].pubkey.equals(p))||!accounts[0].isSigner||![1,2,10].every(i=>accounts[i].isWritable)||!marketAccount?.pubkey.equals(market)||!marketAccount.isWritable)reject();
   if(accounts.filter(a=>a.pubkey.equals(FEE_ATA)).length!==1)reject();
   return {instruction:new TransactionInstruction({programId:JUPITER_PROGRAM,keys:accounts,data}),output,min,variant};
 }

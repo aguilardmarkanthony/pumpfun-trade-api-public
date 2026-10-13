@@ -68,6 +68,10 @@ Run `node --env-file=.dev.vars my-bot.mjs`. This direct import needs no local HT
 
 Your own signer signs the reviewed transaction. Your own RPC submits it and tracks the original signature/hash. Pump execution examples, where present, use the local API by default; give their rpcUrl or connection your customer endpoint. No automatic retry should create a second trade when the first confirmation is unknown.
 
+## Route compatibility
+
+The builder validates the exact writable market position for reviewed Jupiter variants 187, 191, 192, 193 and 194. Legacy curve-sell variant 153 is no longer accepted because its account layout lacks verification. Unsupported or changed layouts fail with `ROUTE_REJECTED`; do not bypass the check. Update and restart your local clone to receive reviewed routing changes.
+
 ## Fees, operating limits and verification
 
 The 0.25% service fee and fixed recipient remain part of the reviewed transaction/settlement path. Stage detection, slippage limits and mandatory build simulation remain enabled. A fee is collected only when the fee-bearing swap succeeds on-chain. Open-source users can modify or bypass this integration; the library cannot force fees on unrelated or modified trades.

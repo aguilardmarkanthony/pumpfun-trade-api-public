@@ -22,9 +22,10 @@ function sample(action='buy',graduated=false,existingWsol=false){
   const order={publicKey:user.toBase58(),mint:MINT.toBase58(),action,amount:action==='buy'?'0.01':'1000',slippageBps:100,maxServiceFeeBps:25,priorityFee:5000};
   const input=tradeInput(order),buy=action==='buy',src=buy?NATIVE_MINT:MINT,dst=buy?MINT:NATIVE_MINT;
   const addresses=[user,getAssociatedTokenAddressSync(src,user),getAssociatedTokenAddressSync(dst,user),src,dst,TOKEN_PROGRAM_ID,TOKEN_PROGRAM_ID,JUPITER_PROGRAM,new PublicKey('D8cy77BBepLMngZx6ZukaTff5hCt1HrWyKk3Hnd9oitf'),JUPITER_PROGRAM,FEE_ATA,graduated?sdk.swap.PUMP_AMM_PROGRAM_ID:sdk.pump.PUMP_PROGRAM_ID,graduated?sdk.pump.canonicalPumpPoolPda(MINT):sdk.pump.bondingCurvePda(MINT),OTHER,SystemProgram.programId];
+  if(!graduated){addresses[12]=OTHER;while(addresses.length<=17)addresses.push(OTHER);addresses[17]=sdk.pump.bondingCurvePda(MINT);}
   const variant=graduated?(buy?193:194):(buy?191:192),fields=variant===191?2:1,data=Buffer.alloc(39+fields);
   Buffer.from('bb64facc31c4af14','hex').copy(data);data.writeBigUInt64LE(input.amount,8);data.writeBigUInt64LE(100000n,16);data.writeUInt16LE(100,24);data.writeUInt16LE(25,26);data.writeUInt32LE(1,30);data[34]=variant;data.writeUInt16LE(10000,35+fields);data[38+fields]=1;
-  const instruction=new TransactionInstruction({programId:JUPITER_PROGRAM,keys:addresses.map((pubkey,i)=>({pubkey,isSigner:i===0,isWritable:[0,1,2,10,12].includes(i)})),data});
+  const instruction=new TransactionInstruction({programId:JUPITER_PROGRAM,keys:addresses.map((pubkey,i)=>({pubkey,isSigner:i===0,isWritable:[0,1,2,10].includes(i)||i===(graduated?12:17)})),data});
   const built=composeRoute({instruction},input,{tokenProgram:TOKEN_PROGRAM_ID,userBaseTokenAccount:getAssociatedTokenAddressSync(MINT,user)},existingWsol,false,BLOCKHASH,[]);
   const response={...built,unsigned:true,submitted:false,serviceFeeBps:25,feeRecipient:FEE_RECIPIENT.toBase58(),feeAccount:FEE_ATA.toBase58(),feeRouterProgramId:JUPITER_PROGRAM.toBase58(),expectedOut:'100000',minOut:'99000',feeAccountSetupRequired:true,feeAccountSetupRentLamports:'1488440',estimatedNetworkFeeLamports:'10000',blockhash:BLOCKHASH,lastValidBlockHeight:300,simulation:{status:'passed',contextSlot:100}};
   const calls={build:0,sign:0,send:0,status:0,bytes:[]};

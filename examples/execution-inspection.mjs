@@ -1,7 +1,7 @@
 import {TransactionMessage,AddressLookupTableAccount,AddressLookupTableProgram} from '@solana/web3.js';
 import {NATIVE_MINT,TOKEN_PROGRAM_ID,getAssociatedTokenAddressSync} from '@solana/spl-token';
 import {inspectPublicBuild} from './client.mjs';
-import {composeRoute,JUPITER_PROGRAM} from '../src/jupiter.js';
+import {composeRoute,JUPITER_PROGRAM,PUMP_MARKET_INDEX} from '../src/jupiter.js';
 import {tradeInput} from '../src/input.js';
 import sdk from '../src/sdk.cjs';
 
@@ -40,7 +40,7 @@ export async function inspectExecution(response,order,connection){
   if((input.pool==='pump'&&graduated)||(input.pool==='pumpswap'&&!graduated)||!key(input.action==='buy'?5:6)?.equals(TOKEN_PROGRAM_ID))throw new Error('Unexpected requested venue or SOL token program.');
   if(!key(7)?.equals(JUPITER_PROGRAM)||!key(9)?.equals(JUPITER_PROGRAM)||
     key(8)?.toBase58()!=='D8cy77BBepLMngZx6ZukaTff5hCt1HrWyKk3Hnd9oitf'||
-    !key(11)?.equals(protocol)||!swap.keys.slice(12).some(k=>k.pubkey.equals(market)))throw new Error('Unexpected protocol or market.');
+    !key(11)?.equals(protocol)||!key(PUMP_MARKET_INDEX[variant])?.equals(market)||!swap.keys[PUMP_MARKET_INDEX[variant]]?.isWritable)throw new Error('Unexpected protocol or market.');
   const tokenProgram=key(input.action==='buy'?6:5);
   const wsol=getAssociatedTokenAddressSync(NATIVE_MINT,input.user);
   const existingWsol=await connection.getAccountInfo(wsol,{commitment:'confirmed',minContextSlot:response.simulation.contextSlot});

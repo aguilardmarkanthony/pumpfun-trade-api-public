@@ -1,4 +1,18 @@
-# Review record - October 13, 2026
+# Review record
+
+## Code review - October 14, 2026
+
+Reviewed input validation, customer RPC boundaries, local HTTP handling, account and market identities, routing/settlement, fee and slippage handling, signing examples, failure recovery, documentation and regression coverage. Existing contract sources were read; this patch changes no contract or deployed bytecode. This is internal code review, not an independent audit.
+
+- **High: incomplete market binding in Jupiter route validation.** The expected canonical curve/pool could be appended as an unused account while a different address occupied the active market position. Mere membership was accepted. The builder and both local transaction inspectors now require the canonical writable market at its reviewed variant-specific index. Four direction/stage adversarial fixtures reproduced the previous acceptance; local inspectors also reject the altered unsigned transaction before signing. This demonstrates a validation gap, not a demonstrated funded exploit.
+- **Low: executable mint accounts.** Mint decoding checked owner and layout but did not reject the executable flag. All mint inputs now reject executable accounts before pricing or building. A valid initialized token mint remains accepted; an otherwise identical executable fixture is rejected with INVALID_CHAIN_STATE. This hardens malformed/untrusted RPC responses; it is not evidence of an executable real-world SPL mint.
+
+Compatibility: unverified legacy Jupiter curve-sell variant 153 now fails closed. Reviewed variants are 187, 191, 192, 193 and 194. Exact market positions are based on saved unsigned route responses; public layout metadata and capture hashes are in [the fixture evidence](../test/fixtures/jupiter-market-layouts.json). No new live simulation was run in this review. Future upstream layouts require new evidence and review.
+
+Validation results are recorded in [the local check evidence](evidence/code-review-2026-10-14.json). Regression tests exercise mocked transports and fixture accounts. Existing fee, stage, simulation, customer-only RPC and documentation-only host tests are included in the full suite.
+
+Update your clone with `git pull --ff-only`, run `npm ci --ignore-scripts`, and restart the local API/bot to use these changes. Customer processes do not update when a public documentation site is deployed. The public host's customer-RPC mode and website previews are unchanged. No Worker deployment, live trade, wallet operation, mainnet contract deployment or chain request was performed for this review. Funded verification remains outstanding. Prices, migrations and third-party upgrades can still invalidate a prepared transaction.
+
 
 ## Customer RPC migration — October 13, 2026
 

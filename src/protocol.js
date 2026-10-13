@@ -11,7 +11,7 @@ const bn=x=>new BN(String(x));
 const bad=(message='On-chain account validation failed.')=>{throw new ApiError(503,'INVALID_CHAIN_STATE',message);};
 export function owned(info,owner){if(!info||info.executable||!info.owner.equals(owner))bad();return info;}
 export function decodeMint(mint,info) {
-  if(!info||![TOKEN_PROGRAM_ID,TOKEN_2022_PROGRAM_ID].some(p=>p.equals(info.owner)))bad();
+  if(!info||info.executable||![TOKEN_PROGRAM_ID,TOKEN_2022_PROGRAM_ID].some(p=>p.equals(info.owner)))bad();
   const decoded=unpackMint(mint,info,info.owner);
   if(!decoded.isInitialized)bad();
   const permitted=[ExtensionType.MetadataPointer,ExtensionType.TokenMetadata,ExtensionType.MintCloseAuthority];

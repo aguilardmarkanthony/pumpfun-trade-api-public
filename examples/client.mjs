@@ -1,7 +1,8 @@
 import {Connection,PublicKey,VersionedTransaction} from '@solana/web3.js';
 import {NATIVE_MINT,TOKEN_PROGRAM_ID,TOKEN_2022_PROGRAM_ID,getAssociatedTokenAddressSync} from '@solana/spl-token';
 import {FEE_RECIPIENT,FEE_ATA,FEE_BPS} from '../src/fees.js';
-import {JUPITER_PROGRAM} from '../src/jupiter.js';
+import {JUPITER_PROGRAM,PUMP_MARKET_INDEX} from '../src/jupiter.js';
+import sdk from '../src/sdk.cjs';
 import {tradeInput} from '../src/input.js';
 
 async function request(settings,path,order){
@@ -59,7 +60,7 @@ export async function inspectPublicBuild(response,order,connection){
   const keys=message.getAccountKeys({addressLookupTableAccounts:tables});
   const swaps=message.compiledInstructions.filter(ix=>keys.get(ix.programIdIndex).equals(JUPITER_PROGRAM));if(swaps.length!==1)throw new Error('Expected one Jupiter swap.');
   const ix=swaps[0],data=Buffer.from(ix.data),k=i=>keys.get(ix.accountKeyIndexes[i]);
-  const buy=input.action==='buy',variant=data[34],variants=buy?[187,191,193]:[153,192,194];
+  const buy=input.action==='buy',variant=data[34],variants=buy?[187,191,193]:[192,194];
   const fields=[187,191].includes(variant)?2:1;
   if(!variants.includes(variant)||data.length!==39+fields||data.subarray(0,8).toString('hex')!=='bb64facc31c4af14'||data.readBigUInt64LE(8)!==input.amount||data.readUInt16LE(24)!==input.slippageBps||data.readUInt16LE(26)!==FEE_BPS||data.readUInt16LE(28)!==0||data.readUInt32LE(30)!==1||data.subarray(35,35+fields).some(x=>x!==0)||data.readUInt16LE(35+fields)!==10000||data[37+fields]!==0||data[38+fields]!==1)throw new Error('Unexpected amount, slippage, fee or route.');
   const output=data.readBigUInt64LE(16),minimum=(output*BigInt(10000-input.slippageBps)+9999n)/10000n;
@@ -67,5 +68,12 @@ export async function inspectPublicBuild(response,order,connection){
   const tokenProgram=k(buy?6:5);if(![TOKEN_PROGRAM_ID,TOKEN_2022_PROGRAM_ID].some(p=>p.equals(tokenProgram)))throw new Error('Unexpected token program.');
   const sourceMint=buy?NATIVE_MINT:input.mint,destMint=buy?input.mint:NATIVE_MINT;
   if(!k(0).equals(input.user)||!k(3).equals(sourceMint)||!k(4).equals(destMint)||!k(10).equals(FEE_ATA)||!k(1).equals(getAssociatedTokenAddressSync(sourceMint,input.user,false,buy?TOKEN_PROGRAM_ID:tokenProgram))||!k(2).equals(getAssociatedTokenAddressSync(destMint,input.user,false,buy?tokenProgram:TOKEN_PROGRAM_ID)))throw new Error('Unexpected trader, mint or fee destination.');
+  const graduated=[193,194].includes(variant);
+  const protocol=graduated?sdk.swap.PUMP_AMM_PROGRAM_ID:sdk.pump.PUMP_PROGRAM_ID;
+  const market=graduated?sdk.pump.canonicalPumpPoolPda(input.mint):sdk.pump.bondingCurvePda(input.mint);
+  const marketPosition=ix.accountKeyIndexes[PUMP_MARKET_INDEX[variant]];
+  if((input.pool==='pump'&&graduated)||(input.pool==='pumpswap'&&!graduated)||
+    !k(11)?.equals(protocol)||!k(PUMP_MARKET_INDEX[variant])?.equals(market)||
+    !message.isAccountWritable(marketPosition))throw new Error('Unexpected protocol or market account position.');
   return transaction;
 }

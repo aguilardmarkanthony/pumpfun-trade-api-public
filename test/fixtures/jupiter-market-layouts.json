@@ -1,0 +1,40 @@
+{
+  "source": "Saved Jupiter route responses used during the October 13 unsigned verification. Public-account layout only; captures themselves remain local.",
+  "layouts": [
+    {
+      "variant": 187,
+      "marketIndex": 22,
+      "accountCount": 42,
+      "source": "jupiter-build.json",
+      "sha256": "f4b88611392c81185b669ae5bbc1008db72107992a4d91a19158a2a405b1be6b"
+    },
+    {
+      "variant": 191,
+      "marketIndex": 17,
+      "accountCount": 31,
+      "source": "jupiter-curve-buy.json",
+      "sha256": "a3152fc4a61d539b1d1fc142688f9bbb27a0c6a795783e60c4093356603fc04d"
+    },
+    {
+      "variant": 192,
+      "marketIndex": 17,
+      "accountCount": 31,
+      "source": "jupiter-curve-sell.json",
+      "sha256": "c45ec36d7a21a0d4f2a1a6dba14078e94583d76aab5a2fe32b8832f955f40960"
+    },
+    {
+      "variant": 193,
+      "marketIndex": 12,
+      "accountCount": 31,
+      "source": "jupiter-pumpswap-buy.json",
+      "sha256": "5d92adfec2fedf58af78d0039ce173e5dc206439f41d7832836ad8d288817a6f"
+    },
+    {
+      "variant": 194,
+      "marketIndex": 12,
+      "accountCount": 31,
+      "source": "jupiter-pumpswap-sell.json",
+      "sha256": "beeb4b358b8f80fd3170f881431574796a6b98610aaacdfeed7beea780c1f8f0"
+    }
+  ]
+}

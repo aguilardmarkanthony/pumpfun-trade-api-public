@@ -94,6 +94,8 @@ Before signing, the helper requires successful API simulation, checks encoded am
 
 This is not an independent audit of Jupiter's inner calls or a guarantee against third-party program changes. The server validates chain state and simulates the protocol; the client adds checks at the signing boundary. Simulation and expiry checks cannot prevent every price change or graduation race.
 
+Supported Jupiter variants are 187/191 for curve buys, 192 for curve sells, and 193/194 for PumpSwap buys/sells. The canonical writable market must occupy the reviewed account position; appending it elsewhere is rejected. Legacy curve-sell variant 153 is rejected because its exact account layout has not been verified. An upstream layout change can therefore produce `ROUTE_REJECTED` until reviewed. See [the review record](REVIEW.md) for evidence and limitations.
+
 ## Speed and current limits
 
 This removes manual orchestration inside a bot; it does not guarantee subsecond confirmation. `timings.buildAndInspectMs`, `signMs`, `submitMs`, and `trackingMs` distinguish the stages. A timeout contributes to submission time and is not a measured acknowledgement. Recovered calls report tracking time only.
